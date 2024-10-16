@@ -8,3 +8,5 @@ model.inp
 test.jl
 test.toml
 docs/build
+.vscode/
+Manifest.toml
