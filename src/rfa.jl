@@ -283,7 +283,9 @@ function aaa(
             L[i, n] = (y[i] - fσ[n]) * C[i, n]
         end
         istest = collect(test_index)
-        _, _, V = svd( view(L, istest, 1:n) )
+
+        _,_,V = svd(L[istest, 1:n])
+        
         w = V[:, end] # barycentric weights
 
         CC = view(C, istest, 1:n)
@@ -305,6 +307,9 @@ function aaa(
             ((length(iteration) - bestidx >= lookahead) && (besterr < 1e-2*fmax))
             break
         end
+
+        # To make sure columns of V won't be thrown away is svd and prevent overfitting
+        if n>=((m+1)>>1) break end
 
         _, j = findmax(abs, R)
         push!(node_index, j)
