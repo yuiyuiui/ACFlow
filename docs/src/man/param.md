@@ -1296,7 +1296,7 @@ Depth = 3
 
 *Definition:*
 
-> Number of points of a very fine linear mesh. This mesh is for the poles.
+> Number of grid points for a very fine mesh. This mesh is for the poles.
 
 *Type:*
 
@@ -1314,7 +1314,7 @@ Depth = 3
 
 *Definition:*
 
-> Number of poles on the real axis, which is used to mimic the Matsubara Green's function.
+> Number of poles on the real axis. These poles are used to mimic the Matsubara Green's function.
 
 *Type:*
 

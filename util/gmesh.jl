@@ -13,6 +13,8 @@
 #     $ gmesh.jl ac.toml
 #
 
+haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+
 using Printf
 using ACFlow
 
@@ -61,7 +63,7 @@ end
 
 Write the generated mesh to the file `fmesh.inp`. This file can be used by
 some stochastic analytic continuation methods, such as the StochPX solver,
-to perform constrained sampling. 
+to perform constrained sampling.
 
 ### Arguments
 * fmesh -> Dynamical mesh.

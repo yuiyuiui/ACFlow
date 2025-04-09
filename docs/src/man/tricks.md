@@ -1,4 +1,4 @@
-# [Tricks and tips](@id tricks)
+# [Tricks and Tips](@id tricks)
 
 *A comprehensive guide about how to perform reliable analytic continuation.*
 
@@ -31,17 +31,21 @@ Depth = 3
 
 7. Employ the [`pmesh`](@ref pmesh) and [`mesh`](@ref mesh) parameters to customize the real-frequency mesh if you know the positions for the sharp features in the spectra.
 
-8. Employ the [`exclude`](@ref exclude) parameters to limit the distributions of random fields for the `StochAC`, `StochSK`, and `StochPX` solvers, if you have rough estimations about the band edges or band gaps in the spectra. Actually, we can use the constrained algorithm to determine the positions for these sharp features.
+8. Employ the [`exclude`](@ref exclude) parameters to limit the distributions of random fields for the `StochAC`, `StochSK`, `StochOM` and `StochPX` solvers, if you have rough estimations about the band edges or band gaps in the spectra. Actually, we can use the constrained algorithm to determine the positions for these sharp features.
+
+---
 
 ## [MaxEnt solver](@id maxent)
 
 1. The `chi2kink` and `bryan` algorithms are recommended. See [`method`](@ref maxent_method).
 
-2. The Shannon-Jaynes entropy is recommented. But sometimes, if sharp features are essential, please choose the Bayesian Reconstruction entropy. See [`stype`](@ref maxent_stype).
+2. The Shannon-Jaynes entropy is recommented. But sometimes, if sharp features are essential, please choose the bayesian reconstruction entropy. See [`stype`](@ref maxent_stype).
 
 3. Adjust the [`nalph`](@ref maxent_nalph), [`alpha`](@ref maxent_alpha), [`ratio`](@ref maxent_ratio) parameters to make sure that the ``\chi^2(\alpha)`` curve is reasonable. It means that the `default model region` and the `noise-fitting region` should exhibit similar lengths.
 
 4. If there is a `NaN` error, please decrease the [`nalph`](@ref maxent_nalph) parameter at first. And then you can increase the [`alpha`](@ref maxent_alpha) parameter. Of cource, a different scheme for determining optimal ``\alpha`` is also possible. See [`method`](@ref maxent_method).
+
+---
 
 ## [BarRat solver](@id barrat)
 
@@ -57,11 +61,15 @@ Depth = 3
 
 6. If the spectrum is discrete, the BarRat solver will output the positions of the poles. Please adjust the `pcut` parameter to control how many poles are kept. See [`pcut`](@ref barrat_pcut).
 
+---
+
 ## [NevanAC solver](@id nevanac)
 
 1. It is extremely sensitive to the noise. So please make sure that the input data is smooth and is free of noise.
 
 2. Actually, I think it is not suitable for quantum Monte Carlo data.
+
+---
 
 ## [StochAC solver](@id stochac)
 
@@ -69,7 +77,11 @@ Depth = 3
 
 2. Perhaps more ``\alpha`` could help. See [`nalph`](@ref stochac_nalph).
 
-3. Run it parallelly (use `Pacrun.jl`).
+3. Run it parallelly (use `util/acprun.jl`).
+
+4. It supports both the `constrained sampling algorithm` and `self-adaptive sampling algorithm`.
+
+---
 
 ## [StochSK solver](@id stochsk)
 
@@ -77,7 +89,11 @@ Depth = 3
 
 2. Increase `nfine` and `nstep`. See [`nfine`](@ref stochsk_nfine).
 
-3. Run it parallelly (use `Pacrun.jl`).
+3. Run it parallelly (use `util/acprun.jl`).
+
+4. It supports the `constrained sampling algorithm`.
+
+---
 
 ## [StochOM solver](@id stochom)
 
@@ -85,13 +101,17 @@ Depth = 3
 
 2. Increase `ntry`, `nstep` and `nbox`. See [`ntry`](@ref stochom_ntry).
 
-3. Run it parallelly (use `Pacrun.jl`).
+3. Run it parallelly (use `util/acprun.jl`).
+
+4. It supports the `constrained sampling algorithm`.
+
+---
 
 ## [StochPX solver](@id stochpx)
 
 1. If the spectrum is expected to be broad, please set `method = 'mean'`. If the spectrum is expected to be ``\delta``-like, please set `method = 'best'`. See [`method`](@ref stochpx_method).
 
-2. Run it parallelly (use `Pacrun.jl`).
+2. Run it parallelly (use `util/acprun.jl`).
 
 3. Increase `ntry` to get smooth spectrum. See [`ntry`](@ref stochpx_ntry).
 
@@ -106,3 +126,5 @@ Depth = 3
 8. If you want to obtain a smoother spectrum, please increase `eta`, or else reduce `eta`. See [`eta`](@ref stochpx_eta).
 
 9. If the spectrum contains many sharp features, the `constrained sampling algorithm` and `self-adaptive sampling algorithm` can help. See [`constrained sampling algorithm`](@ref stochpx_csa) and [`self-adaptive sampling algorithm`](@ref stochpx_ssa) for the basic principles.
+
+10. If you only want to change the `method` and `eta` parameters, it is not necessary to launch the StochPX solver again. The script `util/ppole.jl` could help.

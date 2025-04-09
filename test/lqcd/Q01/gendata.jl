@@ -5,6 +5,8 @@
 # One Breit-Wigner peaks
 #
 
+haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+
 using Random
 using Printf
 using ACFlow

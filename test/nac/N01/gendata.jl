@@ -1,5 +1,7 @@
 #!/usr/bin/env julia
-push!(LOAD_PATH, "/Users/lihuang/Working/devel/ACFlow/src")
+
+haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+
 using Printf
 using ACFlow
 

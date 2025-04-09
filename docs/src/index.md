@@ -1,10 +1,10 @@
 # ACFlow
 
-*A full-fledged analytic continuation toolkit in Julia.*
+*A full-fledged analytic continuation toolkit in Julia*
 
 !!! info
 
-    Thank you for using ACFlow. This documentation will help you to be familiar with and explore the ACFlow toolkit. It is just compatible with ACFlow v2.1.1-devel.241001.
+    Thank you for using ACFlow. This documentation will help you to be familiar with and explore the ACFlow toolkit. It is just compatible with ACFlow v2.1.4-devel.250405.
 
 !!! note
 
@@ -38,6 +38,8 @@ Pages = [
     "man/output.md",
     "man/param.md",
     "man/tricks.md",
+    "man/gui.md",
+    "man/test.md",
 ]
 Depth = 1
 ```

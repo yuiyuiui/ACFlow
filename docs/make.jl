@@ -1,4 +1,4 @@
-push!(LOAD_PATH, "../src")
+haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Documenter
 using Random
@@ -13,8 +13,9 @@ makedocs(
         ansicolor = true,
         repolink = "https://github.com/huangli712/ACFlow",
         size_threshold = 409600, # 400kb
+        assets = ["assets/acflow.css"],
+        collapselevel = 1,
     ),
-    #format = Documenter.LaTeX(platform = "none"),
     remotes = nothing,
     modules = [ACFlow],
     pages = [
@@ -33,7 +34,9 @@ makedocs(
             "Input Files" => "man/input.md",
             "Output Files" => "man/output.md",
             "Parameters" => "man/param.md",
-            "Tricks and tips" => "man/tricks.md",
+            "Tricks and Tips" => "man/tricks.md",
+            "Graphic User Interface" => "man/gui.md",
+            "Benchmark Tools" => "man/test.md",
         ],
         "Examples" => Any[
             "Matsubara Self-Energy Function" => "examples/sigma.md",
@@ -64,7 +67,7 @@ makedocs(
             "Models" => "library/model.md",
             "Kernels" => "library/kernel.md",
             "Configuration" => "library/config.md",
-            "Input and output" => "library/inout.md",
+            "Input and Output" => "library/inout.md",
             "Math" => "library/math.md",
             "Utilities" => "library/util.md",
         ],

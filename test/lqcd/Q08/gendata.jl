@@ -12,6 +12,8 @@
 # Tc = 269.64 MeV, T = 0.73Tc
 #
 
+haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+
 using DelimitedFiles
 using Random
 using Printf
