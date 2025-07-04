@@ -646,6 +646,8 @@ See also: [`RawData`](@ref).
 function init_iodata(S::StochSKSolver, rd::RawData)
     G = make_data(rd)
     Gᵥ = G.value # Gᵥ = abs.(G.value)
+    @show typeof(Gᵥ)
+    @show length(Gᵥ)
     σ¹ = 1.0 ./ sqrt.(G.covar)
 
     return Gᵥ, σ¹

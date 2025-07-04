@@ -79,7 +79,7 @@ function generate_GFV_delta(β::T,
     return res
 end
 
-function dfcfg_cont(;
+function ssk_dfcfg_cont(;
     β = 10.0,
     N = 20,
     seed=6,
@@ -123,7 +123,7 @@ function dfcfg_cont(;
     return wn, GFV, A
 end
 
-function dfcfg_delta(;
+function ssk_dfcfg_delta(;
     β = 10.0,
     N = 20,
     seed=6,
