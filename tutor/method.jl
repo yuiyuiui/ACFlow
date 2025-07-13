@@ -80,16 +80,16 @@ function generate_GFV_delta(β::T,
 end
 
 function ssk_dfcfg_cont(;
-    β = 10.0,
-    N = 20,
+    β=10.0,
+    N=20,
     seed=6,
-    μ = [0.5, -2.5],
-    σ = [0.2, 0.8],
-    peak = [1.0, 0.3],
-    opb = 5.0,
-    opn = 801,
-    noise = 0.0,
-    )
+    μ=[0.5, -2.5],
+    σ=[0.2, 0.8],
+    peak=[1.0, 0.3],
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+)
     Random.seed!(seed)
     A = continous_spectral_density(μ, σ, peak)
     # opr = collect(range(-opb, opb, opn))
@@ -124,14 +124,14 @@ function ssk_dfcfg_cont(;
 end
 
 function ssk_dfcfg_delta(;
-    β = 10.0,
-    N = 20,
+    β=10.0,
+    N=20,
     seed=6,
     poles_num=2,
-    opb = 5.0,
-    opn = 801,
-    noise = 0.0,
-    )
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+)
     Random.seed!(seed)
     poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
     γ = ones(poles_num) ./ poles_num
@@ -163,5 +163,49 @@ function ssk_dfcfg_delta(;
         "ratio" => 0.9,       # Scaling factor for the θ parameter. It should be less than 1.0.
     )
     setup_param(B, S)
-    return wn, GFV, (poles,γ)
+    return wn, GFV, (poles, γ)
+end
+
+function spx_dfcfg_cont(;
+    β=10.0,
+    N=20,
+    seed=6,
+    μ=[0.5, -2.5],
+    σ=[0.2, 0.8],
+    peak=[1.0, 0.3],
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+)
+    Random.seed!(seed)
+    A = continous_spectral_density(μ, σ, peak)
+    # opr = collect(range(-opb, opb, opn))
+    wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
+    GFV = generate_GFV_cont(β, N, A; noise=noise)
+
+
+    B = Dict{String,Any}(
+        "solver" => "StochPX",  # Choose MaxEnt solver
+        "mtype" => "gauss",   # Default model function
+        "mesh" => "tangent", # Mesh for spectral function
+        "ngrid" => N,        # Number of grid points for input data
+        "nmesh" => opn,       # Number of mesh points for output data
+        "wmax" => opb,       # Right boundary of mesh
+        "wmin" => -opb,      # Left boundary of mesh
+        "beta" => β,      # Inverse temperature
+    )
+
+
+    S = Dict{String,Any}(
+        "method" => "mean",
+        "nfine" => 100000,   # Number of grid points for a very fine mesh. This mesh is for the poles.
+        "npole" => 200,    # Number of poles on the real axis. These poles are used to mimic the Matsubara Green's function.
+        "ntry" => 1000,   # Number of attempts to figure out the solution.
+        "nstep" => 10000,    #  Number of Monte Carlo sweeping steps per attempt / try.
+        "theta" => 1e+6,    # . Artificial inverse temperature θ. When it is increased, the transition probabilities of Monte Carlo updates will decrease.
+        "eta" => 1e-4,
+    )
+    setup_param(B, S)
+
+    return wn, GFV, A
 end

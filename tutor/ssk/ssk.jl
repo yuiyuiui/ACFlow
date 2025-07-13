@@ -1,8 +1,6 @@
 using ACFlow
 using Plots
 include("../method.jl")
-using Random
-Random.seed!(23456789)
 
 wn, GFV, (p,γ) = ssk_dfcfg_delta()
 
