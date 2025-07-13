@@ -1,5 +1,51 @@
 using LinearAlgebra, Random
 
+function find_peaks(v, minipeak)
+    idx = findall(x -> x > minipeak, v)
+    diff_right = vcat(v[1:(end - 1)]-v[2:end], v[end])
+    diff_left = vcat(v[1], v[2:end]-v[1:(end - 1)])
+    res = []
+    for j in idx
+        diff_right[j] >= 0 && diff_left[j] >= 0 && push!(res, j)
+    end
+    return res
+end
+
+function find_peaks(mesh, v, minipeak; wind=0.01)
+    @assert length(mesh) == length(v)
+    n = length(mesh)
+    idx = findall(x -> x > minipeak, v)
+    diff_right = vcat(v[1:(end - 1)]-v[2:end], v[end])
+    diff_left = vcat(v[1], v[2:end]-v[1:(end - 1)])
+    tmp = []
+    res = []
+    for j in idx
+        diff_right[j] >= 0 && diff_left[j] >= 0 && push!(tmp, j)
+    end
+    for j in tmp
+        flag = true
+        k = 1
+        while j+k <= n && abs(mesh[j+k] - mesh[j]) < wind
+            if v[j+k] >= v[j]
+                flag = false
+                break
+            end
+            k += 1
+        end
+        k = 1
+        while j-k >= 1 && abs(mesh[j] - mesh[j-k]) < wind
+            if v[j-k] >= v[j]
+                flag = false
+                break
+            end
+            k += 1
+        end
+        flag && push!(res, j)
+    end
+    return res
+end
+
+
 function integral(f::Function, a::T, b::T; h::T=T(1e-4)) where {T<:Real}
     n_raw = floor((b - a) / h)
     n = Int(n_raw)
@@ -208,4 +254,174 @@ function spx_dfcfg_cont(;
     setup_param(B, S)
 
     return wn, GFV, A
+end
+
+
+function sac_dfcfg_cont(;
+    β=10.0,
+    N=20,
+    seed=6,
+    μ=[0.5, -2.5],
+    σ=[0.2, 0.8],
+    peak=[1.0, 0.3],
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+)
+    Random.seed!(seed)
+    A = continous_spectral_density(μ, σ, peak)
+    # opr = collect(range(-opb, opb, opn))
+    wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
+    GFV = generate_GFV_cont(β, N, A; noise=noise)
+
+
+    B = Dict{String,Any}(
+        "solver" => "StochAC",  # Choose MaxEnt solver
+        "mesh" => "tangent", # Mesh for spectral function
+        "ngrid" => N,        # Number of grid points for input data
+        "nmesh" => opn,       # Number of mesh points for output data
+        "wmax" => opb,       # Right boundary of mesh
+        "wmin" => -opb,      # Left boundary of mesh
+        "beta" => β,      # Inverse temperature
+    )
+
+
+    S = Dict{String,Any}(
+        "nfine" => 10000,   # Number of grid points for a very fine mesh. This mesh is for the poles.
+        "ngamm" => 512,   # Number of δ functions. Their superposition is used to mimic the spectral functions.
+        "nwarm" => 4000,   # Number of Monte Carlo thermalization steps.
+        "nstep" => 4000000,    #  Number of Monte Carlo steps.
+        "ndump" => 40000,    #  Intervals for monitoring Monte Carlo sweeps. For every ndump steps, the StochAC solver will try to output some useful information to help diagnosis.
+        "nalph" => 20,      # Total number of the α parameters.
+        "alpha" => 1.0,      # Starting value for the α parameter. The StochAC solver always starts with a small α parameter, and then increases it gradually.
+        "ratio" => 1.2,       # Scaling factor for the α parameter. It should be larger than 1.0.
+    )
+    setup_param(B, S)
+
+    return wn, GFV, A
+end
+
+
+function sac_dfcfg_delta(;
+    β=10.0,
+    N=20,
+    seed=6,
+    poles_num=2,
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+)
+    Random.seed!(seed)
+    poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
+    γ = ones(poles_num) ./ poles_num
+    wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
+    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+
+    B = Dict{String,Any}(
+        "solver" => "StochAC",  # Choose MaxEnt solver
+        "mesh" => "tangent", # Mesh for spectral function
+        "ngrid" => N,        # Number of grid points for input data
+        "nmesh" => opn,       # Number of mesh points for output data
+        "wmax" => opb,       # Right boundary of mesh
+        "wmin" => -opb,      # Left boundary of mesh
+        "beta" => β,      # Inverse temperature
+    )
+
+
+    S = Dict{String,Any}(
+        "nfine" => 10000,   # Number of grid points for a very fine mesh. This mesh is for the poles.
+        "ngamm" => poles_num,   # Number of δ functions. Their superposition is used to mimic the spectral functions.
+        "nwarm" => 4000,   # Number of Monte Carlo thermalization steps.
+        "nstep" => 4000000,    #  Number of Monte Carlo steps.
+        "ndump" => 40000,    #  Intervals for monitoring Monte Carlo sweeps. For every ndump steps, the StochAC solver will try to output some useful information to help diagnosis.
+        "nalph" => 20,      # Total number of the α parameters.
+        "alpha" => 1.0,      # Starting value for the α parameter. The StochAC solver always starts with a small α parameter, and then increases it gradually.
+        "ratio" => 1.2,       # Scaling factor for the α parameter. It should be larger than 1.0.
+    )
+    setup_param(B, S)
+
+    return wn, GFV, (poles, γ)
+end
+
+
+function som_dfcfg_cont(;
+    β=10.0,
+    N=20,
+    seed=6,
+    μ=[0.5, -2.5],
+    σ=[0.2, 0.8],
+    peak=[1.0, 0.3],
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+)
+    Random.seed!(seed)
+    A = continous_spectral_density(μ, σ, peak)
+    # opr = collect(range(-opb, opb, opn))
+    wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
+    GFV = generate_GFV_cont(β, N, A; noise=noise)
+
+
+    B = Dict{String,Any}(
+        "solver" => "StochOM",  # Choose MaxEnt solver
+        "mesh" => "tangent", # Mesh for spectral function
+        "ngrid" => N,        # Number of grid points for input data
+        "nmesh" => opn,       # Number of mesh points for output data
+        "wmax" => opb,       # Right boundary of mesh
+        "wmin" => -opb,      # Left boundary of mesh
+        "beta" => β,      # Inverse temperature
+    )
+
+
+    S = Dict{String,Any}(
+        "ntry" => 2000,    # Number of attempts to figure out the solution.
+        "nstep" => 1000,   # Number of Monte Carlo steps per try.
+        "nbox" => 100,     # Number of boxes. Their superposition is used to construct the spectral functions.
+        "sbox" => 0.005,   # Minimum area of the randomly generated boxes.
+        "wbox" => 0.02,    # Minimum width of the randomly generated boxes.
+        "norm" => -1.0,    # Is the norm calculated?
+    )
+    setup_param(B, S)
+
+    return wn, GFV, A
+end
+
+
+function som_dfcfg_delta(;
+    β=10.0,
+    N=20,
+    seed=6,
+    poles_num=2,
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+)
+    Random.seed!(seed)
+    poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
+    γ = ones(poles_num) ./ poles_num
+    wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
+    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+
+    B = Dict{String,Any}(
+        "solver" => "StochOM",  # Choose MaxEnt solver
+        "mesh" => "tangent", # Mesh for spectral function
+        "ngrid" => N,        # Number of grid points for input data
+        "nmesh" => opn,       # Number of mesh points for output data
+        "wmax" => opb,       # Right boundary of mesh
+        "wmin" => -opb,      # Left boundary of mesh
+        "beta" => β,      # Inverse temperature
+    )
+
+
+    S = Dict{String,Any}(
+        "ntry" => 2000,    # Number of attempts to figure out the solution.
+        "nstep" => 1000,   # Number of Monte Carlo steps per try.
+        "nbox" => 100,     # Number of boxes. Their superposition is used to construct the spectral functions.
+        "sbox" => 0.005,   # Minimum area of the randomly generated boxes.
+        "wbox" => 0.02,    # Minimum width of the randomly generated boxes.
+        "norm" => -1.0,    # Is the norm calculated?
+    )
+    setup_param(B, S)
+
+    return wn, GFV, (poles, γ)
 end

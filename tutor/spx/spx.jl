@@ -9,7 +9,6 @@ include("../method.jl")
 wn, GFV, A = spx_dfcfg_cont()
 
 res = solve(wn, GFV)
-# begin: 1.55
 
 # ---------------------------------------------------
 # delta situation
