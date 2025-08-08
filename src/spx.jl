@@ -204,7 +204,6 @@ function init(S::StochPXSolver, rd::RawData)
     SC = StochPXContext(Gᵥ, Gᵧ, σ¹, allow, grid, mesh, fmesh,
                         Λ, Θ, χ², χ²ᵥ, Pᵥ, Aᵥ, 𝕊ᵥ)
     println("Initialize context for the StochPX solver")
-
     return MC, SE, SC
 end
 
@@ -260,7 +259,7 @@ function run(MC::StochPXMC, SE::StochPXElement, SC::StochPXContext)
         fwrite && write_statistics(MC)
 
         # Show the best χ² (the smallest) for the current attempt
-        @printf("try = %6i -> [χ² = %9.4e]\n", t, SC.χ²ᵥ[t])
+        t%10==0 && @printf("try = %6i -> [χ² = %9.4e]\n", t, SC.χ²ᵥ[t])
         flush(stdout)
     end
 

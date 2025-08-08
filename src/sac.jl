@@ -577,10 +577,10 @@ function init_mc(S::StochACSolver)
     seed = rand(1:100000000)
     rng = MersenneTwister(seed)
     #
-    Macc = zeros(F64, nalph)
-    Mtry = zeros(F64, nalph)
-    Sacc = zeros(F64, nalph)
-    Stry = zeros(F64, nalph)
+    Macc = zeros(I64, nalph)
+    Mtry = zeros(I64, nalph)
+    Sacc = zeros(I64, nalph)
+    Stry = zeros(I64, nalph)
     #
     MC = StochACMC(rng, Macc, Mtry, Sacc, Stry)
 

@@ -96,6 +96,7 @@ function init(S::MaxEntSolver, rd::RawData)
     G = make_data(rd)
     Gᵥ = G.value
     σ² = 1.0 ./ G.covar
+    @show σ²
     println("Postprocess input data: ", length(σ²), " points")
 
     # Prepare grid for input data
@@ -112,6 +113,8 @@ function init(S::MaxEntSolver, rd::RawData)
 
     # Prepare kernel function
     kernel = make_kernel(mesh, grid)
+    @show size(kernel)
+    @show typeof(kernel)
     println("Build default kernel: ", get_b("ktype"))
 
     # Prepare some essential intermediate variables

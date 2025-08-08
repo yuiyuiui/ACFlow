@@ -2,8 +2,8 @@ using LinearAlgebra, Random
 
 function find_peaks(v, minipeak)
     idx = findall(x -> x > minipeak, v)
-    diff_right = vcat(v[1:(end - 1)]-v[2:end], v[end])
-    diff_left = vcat(v[1], v[2:end]-v[1:(end - 1)])
+    diff_right = vcat(v[1:(end-1)] - v[2:end], v[end])
+    diff_left = vcat(v[1], v[2:end] - v[1:(end-1)])
     res = []
     for j in idx
         diff_right[j] >= 0 && diff_left[j] >= 0 && push!(res, j)
@@ -15,8 +15,8 @@ function find_peaks(mesh, v, minipeak; wind=0.01)
     @assert length(mesh) == length(v)
     n = length(mesh)
     idx = findall(x -> x > minipeak, v)
-    diff_right = vcat(v[1:(end - 1)]-v[2:end], v[end])
-    diff_left = vcat(v[1], v[2:end]-v[1:(end - 1)])
+    diff_right = vcat(v[1:(end-1)] - v[2:end], v[end])
+    diff_left = vcat(v[1], v[2:end] - v[1:(end-1)])
     tmp = []
     res = []
     for j in idx
@@ -25,7 +25,7 @@ function find_peaks(mesh, v, minipeak; wind=0.01)
     for j in tmp
         flag = true
         k = 1
-        while j+k <= n && abs(mesh[j+k] - mesh[j]) < wind
+        while j + k <= n && abs(mesh[j+k] - mesh[j]) < wind
             if v[j+k] >= v[j]
                 flag = false
                 break
@@ -33,7 +33,7 @@ function find_peaks(mesh, v, minipeak; wind=0.01)
             k += 1
         end
         k = 1
-        while j-k >= 1 && abs(mesh[j] - mesh[j-k]) < wind
+        while j - k >= 1 && abs(mesh[j] - mesh[j-k]) < wind
             if v[j-k] >= v[j]
                 flag = false
                 break
@@ -77,7 +77,7 @@ function continous_spectral_density(μ::Vector{T},
     amplitude::Vector{T}) where {T<:Real}
     @assert length(μ) == length(σ) == length(amplitude)
     n = length(μ)
-    function y(x::T)
+    function y(x)
         res = T(0)
         for i in 1:n
             res += amplitude[i] * exp(-(x - μ[i])^2 / (2 * σ[i]^2))
@@ -469,3 +469,170 @@ function som_dfcfg_delta(;
 
     return wn, GFV, (poles, γ)
 end
+
+function nac_dfcfg_cont(;
+    β=10.0,
+    N=20,
+    seed=6,
+    μ=[0.5, -2.5],
+    σ=[0.2, 0.8],
+    peak=[1.0, 0.3],
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+)
+    Random.seed!(seed)
+    A = continous_spectral_density(μ, σ, peak)
+    # opr = collect(range(-opb, opb, opn))
+    wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
+    GFV = generate_GFV_cont(β, N, A; noise=noise)
+
+
+    B = Dict{String,Any}(
+        "solver" => "NevanAC",  # Choose MaxEnt solver
+        "mesh" => "tangent", # Mesh for spectral function
+        "ngrid" => N,        # Number of grid points for input data
+        "nmesh" => opn,       # Number of mesh points for output data
+        "wmax" => opb,       # Right boundary of mesh
+        "wmin" => -opb,      # Left boundary of mesh
+        "beta" => β,      # Inverse temperature
+    )
+
+    S = Dict{String,Any}(
+        "pick" => true,
+        "hardy" => true,
+        "hmax" => 50,
+        "alpha" => 1e-4,
+        "eta" => 1e-2,
+    )
+    setup_param(B, S)
+
+    return wn, GFV, A
+end
+
+function nac_dfcfg_delta(;
+    β=10.0,
+    N=20,
+    seed=6,
+    poles_num=2,
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+)
+    Random.seed!(seed)
+    poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
+    γ = ones(poles_num) ./ poles_num
+    wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
+    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+
+    B = Dict{String,Any}(
+        "solver" => "NevanAC",  # Choose MaxEnt solver
+        "mesh" => "tangent", # Mesh for spectral function
+        "ngrid" => N,        # Number of grid points for input data
+        "nmesh" => opn,       # Number of mesh points for output data
+        "wmax" => opb,       # Right boundary of mesh
+        "wmin" => -opb,      # Left boundary of mesh
+        "beta" => β,      # Inverse temperature
+    )
+
+    S = Dict{String,Any}(
+        "pick" => false,
+        "hardy" => false,
+        "hmax" => 50,
+        "alpha" => 1e-4,
+        "eta" => 1e-2,
+    )
+   
+    setup_param(B, S)
+
+    return wn, GFV, (poles, γ)
+end
+
+
+function maxent_dfcfg_cont(;
+    β=10.0,
+    N=20,
+    seed=6,
+    μ=[0.5, -2.5],
+    σ=[0.2, 0.8],
+    peak=[1.0, 0.3],
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+    method="chi2kink",
+    stype="sj",
+    blur=-1.0,
+)
+    Random.seed!(seed)
+    A = continous_spectral_density(μ, σ, peak)
+    # opr = collect(range(-opb, opb, opn))
+    wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
+    GFV = generate_GFV_cont(β, N, A; noise=noise)
+
+
+    B = Dict{String,Any}(
+        "solver" => "MaxEnt",  # Choose MaxEnt solver
+        "mesh" => "tangent", # Mesh for spectral function
+        "ngrid" => N,        # Number of grid points for input data
+        "nmesh" => opn,       # Number of mesh points for output data
+        "wmax" => opb,       # Right boundary of mesh
+        "wmin" => -opb,      # Left boundary of mesh
+        "beta" => β,      # Inverse temperature
+    )
+
+
+    S = Dict{String,Any}(
+        "method" => method,
+        "stype" => stype,
+        "nalph" => 12,
+        "alpha" => 1e9,
+        "ratio" => 10.0,
+        "blur" => blur
+    )
+    setup_param(B, S)
+    return wn, GFV, A
+end
+
+
+function maxent_dfcfg_delta(;
+    β=10.0,
+    N=20,
+    seed=6,
+    poles_num=2,
+    opb=5.0,
+    opn=801,
+    noise=0.0,
+    method="chi2kink",
+    stype="sj",
+    blur=-1.0,
+)
+    Random.seed!(seed)
+    poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
+    γ = ones(poles_num) ./ poles_num
+    wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
+    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+
+
+    B = Dict{String,Any}(
+        "solver" => "MaxEnt",  # Choose MaxEnt solver
+        "mesh" => "tangent", # Mesh for spectral function
+        "ngrid" => N,        # Number of grid points for input data
+        "nmesh" => opn,       # Number of mesh points for output data
+        "wmax" => opb,       # Right boundary of mesh
+        "wmin" => -opb,      # Left boundary of mesh
+        "beta" => β,      # Inverse temperature
+    )
+
+
+    S = Dict{String,Any}(
+        "method" => method,
+        "stype" => stype,
+        "nalph" => 12,
+        "alpha" => 1e9,
+        "ratio" => 10.0,
+        "blur" => blur
+    )
+    setup_param(B, S)
+    return wn, GFV, (poles, γ)
+end
+

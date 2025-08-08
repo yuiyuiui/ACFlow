@@ -182,6 +182,7 @@ function init(S::StochOMSolver, rd::RawData)
 
     # Prepare some key variables
     Cᵥ, Δᵥ, 𝕊ᵥ = init_context(S, grid)
+    @show Gᵥ
     SC = StochOMContext(Gᵥ, σ¹, grid, mesh, Cᵥ, Δᵥ, 𝕊ᵥ)
     println("Initialize context for the StochOM solver")
 

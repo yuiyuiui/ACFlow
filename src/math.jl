@@ -161,7 +161,10 @@ function newton(
         end
     end
 
-    counter > maxiter && error("Tolerance is reached in newton()!")
+    if counter > maxiter
+        println("Tolerance is reached in newton()!")
+        println("The norm of the Jacobian is: ", norm(J))
+    end
 
     return back, counter
 end
@@ -1611,6 +1614,7 @@ function linesearch!(d::BFGSDifferentiable, s::BFGSState)
 
     # Perform line search using the Hager-Zhang algorithm
     try
+        @show typeof(s.x)
         s.alpha, _ = LS(d, s.x, s.ls, s.alpha, ϕ₀, dϕ₀)
         return true # lssuccess = true
     catch ex
