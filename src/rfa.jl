@@ -68,10 +68,10 @@ Mutable struct. Barycentric representation of a rational function.
 * w_times_f -> Weighted values of the rational function, ``w_i f_i``.
 """
 mutable struct BarycentricFunction <: Function
-    nodes     :: Vector{C64}
-    values    :: Vector{C64}
-    weights   :: Vector{C64}
-    w_times_f :: Vector{C64}
+    nodes::Vector{C64}
+    values::Vector{C64}
+    weights::Vector{C64}
+    w_times_f::Vector{C64}
 end
 
 """
@@ -91,11 +91,7 @@ Construct a `BarycentricFunction` type rational function.
 ### Returns
 * bf -> A BarycentricFunction struct.
 """
-function BarycentricFunction(
-    nodes   :: Vector{C64},
-    values  :: Vector{C64},
-    weights :: Vector{C64}
-    )
+function BarycentricFunction(nodes::Vector{C64}, values::Vector{C64}, weights::Vector{C64})
     @assert length(nodes) == length(values) == length(weights)
     w_times_f = values .* weights
     return BarycentricFunction(nodes, values, weights, w_times_f)
@@ -150,15 +146,15 @@ function bc_poles(r::BarycentricFunction)
     z, w = z[nonzero], w[nonzero]
     #
     m = length(w)
-    B = diagm( [zero(F64); ones(F64, m)] )
-    E = [zero(F64) transpose(w); ones(F64, m) diagm(z) ];
+    B = diagm([zero(F64); ones(F64, m)])
+    E = [zero(F64) transpose(w); ones(F64, m) diagm(z)];
     #
     pole = [] # Put it into scope
     try
-        pole = filter( isfinite, eigvals(E, B) )
+        pole = filter(isfinite, eigvals(E, B))
     catch
         # Generalized eigen not available in extended precision, so:
-        λ = filter( z->abs(z)>1e-13, eigvals(E\B) )
+        λ = filter(z->abs(z)>1e-13, eigvals(E\B))
         pole = 1 ./ λ
     end
 
@@ -243,8 +239,8 @@ function aaa(
     float_type = F64,
     tol = 1000 * eps(float_type),
     lookahead = 10,
-    stats = false
-    )
+    stats = false,
+)
 
     @assert float_type <: AbstractFloat
     T = float_type
@@ -283,15 +279,15 @@ function aaa(
             L[i, n] = (y[i] - fσ[n]) * C[i, n]
         end
         istest = collect(test_index)
-        _, _, V = svd( view(L, istest, 1:n) )
+        _, _, V = svd(view(L, istest, 1:n))
         w = V[:, end] # barycentric weights
 
         CC = view(C, istest, 1:n)
-        num = CC * (w.*fσ)
+        num = CC * (w .* fσ)
         den = CC * w
         @. R[istest] = y[istest] - num / den
         push!(err, norm(R, Inf))
-        push!(iteration, (; weights=w, active=copy(node_index)))
+        push!(iteration, (; weights = w, active = copy(node_index)))
 
         if (Base.last(err) < besterr)
             besterr = Base.last(err)
@@ -301,13 +297,15 @@ function aaa(
 
         # Are we done?
         if (besterr <= tol*fmax) ||
-            (n == max_degree + 1) ||
-            ((length(iteration) - bestidx >= lookahead) && (besterr < 1e-2*fmax))
+           (n == max_degree + 1) ||
+           ((length(iteration) - bestidx >= lookahead) && (besterr < 1e-2*fmax))
             break
         end
 
         # To make sure columns of V won't be thrown away in svd and prevent overfitting
-        if n>=((m+1)>>1) break end
+        if n>=((m+1)>>1)
+            break
+        end
 
         _, j = findmax(abs, R)
         push!(node_index, j)
@@ -318,7 +316,7 @@ function aaa(
     idx, w = best.active, best.weights
     r = BarycentricFunction(z[idx], y[idx], w)
     if stats
-        return r, (;err, iteration)
+        return r, (; err, iteration)
     else
         return r
     end
@@ -392,11 +390,11 @@ Mutable struct. Prony approximation to a complex-valued Matsubara function.
 * Ωₚ -> Weights for Prony approximation, ``w_i``.
 """
 mutable struct PronyApproximation <: Function
-    𝑁ₚ :: I64
-    ωₚ :: Vector{F64}
-    𝐺ₚ :: Vector{C64}
-    Γₚ :: Vector{C64}
-    Ωₚ :: Vector{C64}
+    𝑁ₚ::I64
+    ωₚ::Vector{F64}
+    𝐺ₚ::Vector{C64}
+    Γₚ::Vector{C64}
+    Ωₚ::Vector{C64}
 end
 
 """
@@ -421,12 +419,7 @@ This function should not be called directly by the users.
 ### Returns
 * pa -> A PronyApproximation struct.
 """
-function PronyApproximation(
-    𝑁ₚ :: I64,
-    ωₚ :: Vector{F64},
-    𝐺ₚ :: Vector{C64},
-    v  :: Vector{C64}
-    )
+function PronyApproximation(𝑁ₚ::I64, ωₚ::Vector{F64}, 𝐺ₚ::Vector{C64}, v::Vector{C64})
     # Evaluate cutoff for Γₚ
     Λ = 1.0 + 0.5 / 𝑁ₚ
 
@@ -509,7 +502,7 @@ function PronyApproximation(ω₁::Vector{F64}, 𝐺₁::Vector{C64})
     new_idx = findfirst(x -> x < ε, S)
     #
     # (3) Create lists for chosen indices and the corresponding errors.
-    idxrange = range( new_idx, min(exp_idx + 10, length(S)) )
+    idxrange = range(new_idx, min(exp_idx + 10, length(S)))
     idx_list = collect(idxrange)
     err_list = zeros(F64, length(idx_list))
     #
@@ -583,8 +576,8 @@ See also: [`prony_data`](@ref).
 function prony_svd(𝑁ₚ::I64, 𝐺ₚ::Vector{C64})
     ℋ = zeros(C64, 𝑁ₚ + 1, 𝑁ₚ + 1)
     #
-    for i = 1 : 𝑁ₚ + 1
-        ℋ[i,:] = 𝐺ₚ[i:i+𝑁ₚ]
+    for i = 1:(𝑁ₚ+1)
+        ℋ[i, :] = 𝐺ₚ[i:(i+𝑁ₚ)]
     end
     #
     _, S, V = svd(ℋ)
@@ -647,7 +640,7 @@ function prony_idx(S::Vector{F64})
     𝔸 = hcat(idx_fit, ones(I64, length(idx_fit)))
     #
     𝑎, 𝑏 = pinv(𝔸) * log.(val_fit)
-    𝕊 = exp.(𝑎 .* collect(range(1,n_max)) .+ 𝑏)
+    𝕊 = exp.(𝑎 .* collect(range(1, n_max)) .+ 𝑏)
     #
     idx = count(S[1:n_max] .> 5.0 * 𝕊) + 1
 
@@ -669,10 +662,10 @@ threshold `ε`.
 
 See also: [`prony_svd`](@ref).
 """
-function prony_v(V::Adjoint{C64, Matrix{C64}}, idx::I64)
+function prony_v(V::Adjoint{C64,Matrix{C64}}, idx::I64)
     # Extract v from V
     println("Selected vector from orthogonal matrix V: ", idx)
-    v = V[:,idx]
+    v = V[:, idx]
 
     return reverse!(v)
 end
@@ -704,7 +697,7 @@ function prony_gamma(v::Vector{C64}, Λ::F64)
     #
     if N > 1
         A = diagm(-1=>ones(C64, N - 2))
-        @. A[1,:] = -vnew[2:end] / vnew[1]
+        @. A[1, :] = -vnew[2:end] / vnew[1]
         roots = eigvals(A)
     else
         roots = []
@@ -733,7 +726,7 @@ function prony_omega(𝐺ₚ::Vector{C64}, Γₚ::Vector{C64})
     A = zeros(C64, length(𝐺ₚ), length(Γₚ))
     #
     for i in eachindex(𝐺ₚ)
-        A[i,:] = Γₚ .^ (i - 1)
+        A[i, :] = Γₚ .^ (i - 1)
     end
     #
     return pinv(A) * 𝐺ₚ
@@ -755,7 +748,7 @@ function (𝑝::PronyApproximation)(w::Vector{F64})
     𝔸 = zeros(C64, length(x₀), length(𝑝.Ωₚ))
     #
     for i in eachindex(x₀)
-        @. 𝔸[i,:] = 𝑝.Γₚ ^ (2.0 * 𝑝.𝑁ₚ * x₀[i])
+        @. 𝔸[i, :] = 𝑝.Γₚ ^ (2.0 * 𝑝.𝑁ₚ * x₀[i])
     end
     #
     return 𝔸 * 𝑝.Ωₚ
@@ -780,13 +773,13 @@ Mutable struct. It is used within the BarRat solver only.
 * ℬA   -> It means the weights / amplitudes of the poles.
 """
 mutable struct BarRatContext
-    Gᵥ   :: Vector{C64}
-    grid :: AbstractGrid
-    mesh :: AbstractMesh
-    𝒫    :: Union{Missing,PronyApproximation}
-    ℬ    :: Union{Missing,BarycentricFunction}
-    ℬP   :: Vector{C64}
-    ℬA   :: Vector{C64}
+    Gᵥ::Vector{C64}
+    grid::AbstractGrid
+    mesh::AbstractMesh
+    𝒫::Union{Missing,PronyApproximation}
+    ℬ::Union{Missing,BarycentricFunction}
+    ℬP::Vector{C64}
+    ℬA::Vector{C64}
 end
 
 #=
@@ -883,18 +876,18 @@ function run(brc::BarRatContext)
         #
         println("Construct barycentric rational function approximation")
         brc.ℬ = aaa(iω, brc.𝒫(ω))
-    #
+        #
     elseif denoise == "prony_o"
         println("Activate Prony approximation to denoise the input data")
         brc.𝒫 = PronyApproximation(ω, G)
         #
         println("Construct barycentric rational function approximation")
         brc.ℬ = aaa(iω, brc.𝒫(ω))
-    #
+        #
     else
         println("Construct barycentric rational function approximation")
         brc.ℬ = aaa(iω, G)
-    #
+        #
     end
 
     get_r("atype") == "delta" && poles!(brc)

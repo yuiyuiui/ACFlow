@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using DelimitedFiles
 using Printf
@@ -14,14 +14,14 @@ welcome()
 dlm = readdlm("siw.data")
 #
 # Get grid
-grid = dlm[:,1]
+grid = dlm[:, 1]
 #
 # Get self-energy function
-Σinp = dlm[:,2] + im * dlm[:,3] # Value part
-Σerr = dlm[:,4] + im * dlm[:,5] # Error part
+Σinp = dlm[:, 2] + im * dlm[:, 3] # Value part
+Σerr = dlm[:, 4] + im * dlm[:, 5] # Error part
 #
 # Subtract hartree term
-Σ∞  = 1.0
+Σ∞ = 1.0
 @. Σinp = Σinp - Σ∞
 
 # For MaxEnt solver
@@ -32,21 +32,21 @@ grid = dlm[:,1]
 # See types.jl/_PBASE for default setup
 B = Dict{String,Any}(
     "solver" => "MaxEnt",  # Choose MaxEnt solver
-    "mtype"  => "gauss",   # Default model function
-    "mesh"   => "tangent", # Mesh for spectral function
-    "ngrid"  => 20,        # Number of grid points for input data
-    "nmesh"  => 801,       # Number of mesh points for output data
-    "wmax"   => 8.0,       # Right boundary of mesh
-    "wmin"   => -8.0,      # Left boundary of mesh
-    "beta"   => 10.0,      # Inverse temperature
+    "mtype" => "gauss",   # Default model function
+    "mesh" => "tangent", # Mesh for spectral function
+    "ngrid" => 20,        # Number of grid points for input data
+    "nmesh" => 801,       # Number of mesh points for output data
+    "wmax" => 8.0,       # Right boundary of mesh
+    "wmin" => -8.0,      # Left boundary of mesh
+    "beta" => 10.0,      # Inverse temperature
 )
 #
 # For [MaxEnt] block
 # See types.jl/_PMaxEnt for default setup
 S = Dict{String,Any}(
-    "nalph"  => 15,        # Number of α parameters
-    "alpha"  => 1e12,      # Starting value of α parameter
-    "blur"   => -1.0,      # Enable preblur or not
+    "nalph" => 15,        # Number of α parameters
+    "alpha" => 1e12,      # Starting value of α parameter
+    "blur" => -1.0,      # Enable preblur or not
 )
 #
 setup_param(B, S)

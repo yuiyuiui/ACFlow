@@ -44,15 +44,15 @@ Mutable struct. It is used within the NevanAC solver only.
 * hopt -> Optimal value of the order of Hardy basis functions.
 """
 mutable struct NevanACContext
-    Gᵥ   :: Vector{APC}
-    grid :: AbstractGrid
-    mesh :: AbstractMesh
-    Φ    :: Vector{APC}
-    𝒜    :: Array{APC,3}
-    ℋ    :: Array{APC,2}
-    𝑎𝑏   :: Vector{C64}
-    hmin :: I64
-    hopt :: I64
+    Gᵥ::Vector{APC}
+    grid::AbstractGrid
+    mesh::AbstractMesh
+    Φ::Vector{APC}
+    𝒜::Array{APC,3}
+    ℋ::Array{APC,2}
+    𝑎𝑏::Vector{C64}
+    hmin::I64
+    hopt::I64
 end
 
 #=
@@ -409,11 +409,7 @@ See above explanations.
 
 See also: [`NevanACContext`](@ref).
 """
-function precompute(
-    grid::AbstractGrid,
-    mesh::AbstractMesh,
-    Gᵥ::Vector{APC}
-    )
+function precompute(grid::AbstractGrid, mesh::AbstractMesh, Gᵥ::Vector{APC})
     # Evaluate ϕ and `abcd` matrices
     Φ = calc_phis(grid, Gᵥ)
     𝒜 = calc_abcd(grid, mesh, Φ)
@@ -478,9 +474,9 @@ function calc_pick(k::I64, ℎ::Vector{APC}, λ::Vector{APC})
         for i = 1:k
             num = one(APC) - λ[i] * conj(λ[j])
             den = one(APC) - ℎ[i] * conj(ℎ[j])
-            pick[i,j] = num / den
+            pick[i, j] = num / den
         end
-        pick[j,j] += APC(1e-250)
+        pick[j, j] += APC(1e-250)
     end
 
     # Cholesky decomposition
@@ -511,21 +507,21 @@ function calc_phis(grid::AbstractGrid, Gᵥ::Vector{APC})
 
     # Initialize the `abcd` matrix
     for i = 1:ngrid
-        𝒜[:,:,i] .= Matrix{APC}(I, 2, 2)
+        𝒜[:, :, i] .= Matrix{APC}(I, 2, 2)
     end
 
     # Evaluate Φ using recursive algorithm
     Φ[1] = Gᵥ[1]
-    for j = 1:ngrid-1
-        for k = j+1:ngrid
-            ∏[1,1] = ( 𝑔[k] - 𝑔[j] ) / ( 𝑔[k] - conj(𝑔[j]) )
-            ∏[1,2] = Φ[j]
-            ∏[2,1] = conj(Φ[j]) * ∏[1,1]
-            ∏[2,2] = one(APC)
+    for j = 1:(ngrid-1)
+        for k = (j+1):ngrid
+            ∏[1, 1] = (𝑔[k] - 𝑔[j]) / (𝑔[k] - conj(𝑔[j]))
+            ∏[1, 2] = Φ[j]
+            ∏[2, 1] = conj(Φ[j]) * ∏[1, 1]
+            ∏[2, 2] = one(APC)
             view(𝒜,:,:,k) .= view(𝒜,:,:,k) * ∏
         end
-        num = 𝒜[1,2,j+1] - 𝒜[2,2,j+1] * Gᵥ[j+1]
-        den = 𝒜[2,1,j+1] * Gᵥ[j+1] - 𝒜[1,1,j+1]
+        num = 𝒜[1, 2, j+1] - 𝒜[2, 2, j+1] * Gᵥ[j+1]
+        den = 𝒜[2, 1, j+1] * Gᵥ[j+1] - 𝒜[1, 1, j+1]
         Φ[j+1] = num / den
     end
 
@@ -562,14 +558,14 @@ function calc_abcd(grid::AbstractGrid, mesh::AbstractMesh, Φ::Vector{APC})
         result = Matrix{APC}(I, 2, 2)
         𝑧 = 𝑚[i]
         for j = 1:ngrid
-            ∏[1,1] = ( 𝑧 - 𝑔[j] ) / ( 𝑧 - conj(𝑔[j]) )
-            ∏[1,2] = Φ[j]
-            ∏[2,1] = conj(Φ[j]) * ∏[1,1]
-            ∏[2,2] = one(APC)
+            ∏[1, 1] = (𝑧 - 𝑔[j]) / (𝑧 - conj(𝑔[j]))
+            ∏[1, 2] = Φ[j]
+            ∏[2, 1] = conj(Φ[j]) * ∏[1, 1]
+            ∏[2, 2] = one(APC)
             result *= ∏
         end
 
-        𝒜[:,:,i] .= result
+        𝒜[:, :, i] .= result
     end
 
     return 𝒜
@@ -588,8 +584,8 @@ Try to calculate the Hardy basis ``f^k(z)``.
 See above explanations.
 """
 function calc_hbasis(z::APC, k::I64)
-    w = ( z - im ) / ( z + im )
-    return 1.0 / ( sqrt(π) * (z + im) ) * w^k
+    w = (z - im) / (z + im)
+    return 1.0 / (sqrt(π) * (z + im)) * w^k
 end
 
 """
@@ -616,8 +612,8 @@ function calc_hmatrix(mesh::AbstractMesh, H::I64)
 
     # Build the Hardy matrix
     for k = 1:H
-        ℋ[:,2*k-1] .= calc_hbasis.(𝑚,k-1)
-        ℋ[:,2*k]   .= conj(ℋ[:,2*k-1])
+        ℋ[:, 2*k-1] .= calc_hbasis.(𝑚, k-1)
+        ℋ[:, 2*k] .= conj(ℋ[:, 2*k-1])
     end
 
     return ℋ
@@ -643,8 +639,8 @@ function calc_theta(𝒜::Array{APC,3}, ℋ::Array{APC,2}, 𝑎𝑏::Vector{C64}
     θₘ₊₁ = ℋ * 𝑎𝑏
 
     # Then we evaluate θ according Eq. (7)
-    num = 𝒜[1,1,:] .* θₘ₊₁ .+ 𝒜[1,2,:]
-    den = 𝒜[2,1,:] .* θₘ₊₁ .+ 𝒜[2,2,:]
+    num = 𝒜[1, 1, :] .* θₘ₊₁ .+ 𝒜[1, 2, :]
+    den = 𝒜[2, 1, :] .* θₘ₊₁ .+ 𝒜[2, 2, :]
     θ = num ./ den
 
     return θ
@@ -782,12 +778,12 @@ N/A
 function calc_hopt!(nac::NevanACContext)
     hmax = get_n("hmax")
 
-    for h = nac.hmin + 1:hmax
+    for h = (nac.hmin+1):hmax
         println("H (Order of Hardy basis) -> $h")
 
         # Prepare initial ℋ and 𝑎𝑏
         ℋ = calc_hmatrix(nac.mesh, h)
-        𝑎𝑏  = copy(nac.𝑎𝑏)
+        𝑎𝑏 = copy(nac.𝑎𝑏)
         push!(𝑎𝑏, zero(C64))
         push!(𝑎𝑏, zero(C64))
         @assert size(ℋ)[2] == length(𝑎𝑏)
@@ -824,12 +820,7 @@ by minimizing the smooth norm.
 * causality -> Test whether the solution is causal.
 * converged -> Check whether the optimization is converged.
 """
-function hardy_optimize!(
-    nac::NevanACContext,
-    ℋ::Array{APC,2},
-    𝑎𝑏::Vector{C64},
-    H::I64
-    )
+function hardy_optimize!(nac::NevanACContext, ℋ::Array{APC,2}, 𝑎𝑏::Vector{C64}, H::I64)
     # Function call to the smooth norm.
     function 𝑓(x::Vector{C64})
         return smooth_norm(nac, ℋ, x)
@@ -898,7 +889,7 @@ function smooth_norm(nac::NevanACContext, ℋ::Array{APC,2}, 𝑎𝑏::Vector{C6
 
     # Smoothness term
     sd = second_derivative(nac.mesh.mesh, A)
-    x_sd = nac.mesh.mesh[2:end-1]
+    x_sd = nac.mesh.mesh[2:(end-1)]
     𝑓₂ = trapz(x_sd, abs.(sd) .^ 2)
 
     # Assemble the final smooth norm

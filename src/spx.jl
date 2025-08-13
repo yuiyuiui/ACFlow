@@ -27,9 +27,9 @@ cases, 𝕊 is always positive (+1.0).
 * 𝕊  -> It means the signs of the poles.
 """
 mutable struct StochPXElement
-    P  :: Vector{I64}
-    A  :: Vector{F64}
-    𝕊  :: Vector{F64}
+    P::Vector{I64}
+    A::Vector{F64}
+    𝕊::Vector{F64}
 end
 
 """
@@ -58,20 +58,20 @@ in the StochPXElement struct.
 * 𝕊ᵥ    -> Vector of poles' signs.
 """
 mutable struct StochPXContext
-    Gᵥ    :: Vector{F64}
-    Gᵧ    :: Vector{F64}
-    σ¹    :: Vector{F64}
-    allow :: Vector{I64}
-    grid  :: AbstractGrid
-    mesh  :: AbstractMesh
-    fmesh :: AbstractMesh
-    Λ     :: Array{F64,2}
-    Θ     :: F64
-    χ²    :: F64
-    χ²ᵥ   :: Vector{F64}
-    Pᵥ    :: Vector{Vector{I64}}
-    Aᵥ    :: Vector{Vector{F64}}
-    𝕊ᵥ    :: Vector{Vector{F64}}
+    Gᵥ::Vector{F64}
+    Gᵧ::Vector{F64}
+    σ¹::Vector{F64}
+    allow::Vector{I64}
+    grid::AbstractGrid
+    mesh::AbstractMesh
+    fmesh::AbstractMesh
+    Λ::Array{F64,2}
+    Θ::F64
+    χ²::F64
+    χ²ᵥ::Vector{F64}
+    Pᵥ::Vector{Vector{I64}}
+    Aᵥ::Vector{Vector{F64}}
+    𝕊ᵥ::Vector{Vector{F64}}
 end
 
 #=
@@ -147,7 +147,7 @@ function solve(S::StochPXSolver, rd::RawData)
         # Postprocess the solutions
         last(SC, Aout, Gout, Gᵣ)
         #
-    # Sequential version
+        # Sequential version
     else
         #
         Aout, Gout, Gᵣ = run(MC, SE, SC)
@@ -201,8 +201,7 @@ function init(S::StochPXSolver, rd::RawData)
 
     # Prepare some key variables
     Gᵧ, Λ, Θ, χ², χ²ᵥ, Pᵥ, Aᵥ, 𝕊ᵥ = init_context(S, SE, grid, fmesh, Gᵥ)
-    SC = StochPXContext(Gᵥ, Gᵧ, σ¹, allow, grid, mesh, fmesh,
-                        Λ, Θ, χ², χ²ᵥ, Pᵥ, Aᵥ, 𝕊ᵥ)
+    SC = StochPXContext(Gᵥ, Gᵧ, σ¹, allow, grid, mesh, fmesh, Λ, Θ, χ², χ²ᵥ, Pᵥ, Aᵥ, 𝕊ᵥ)
     println("Initialize context for the StochPX solver")
     return MC, SE, SC
 end
@@ -302,8 +301,8 @@ function prun(
     p2::Dict{String,Vector{Any}},
     MC::StochPXMC,
     SE::StochPXElement,
-    SC::StochPXContext
-    )
+    SC::StochPXContext,
+)
     # Revise parameteric dicts
     # We have to make sure that all processes share the same parameters.
     rev_dict_b(p1)
@@ -403,8 +402,8 @@ function average(SC::StochPXContext)
         #
         # Calculate G(iωₙ)
         Gᵣ = calc_green(p, SC, false)
-    #
-    # Collect the `good` solutions and calculate their average.
+        #
+        # Collect the `good` solutions and calculate their average.
     else
         # Calculate the median of SC.χ²ᵥ
         chi2_med = median(SC.χ²ᵥ)
@@ -449,7 +448,7 @@ function average(SC::StochPXContext)
         else
             fwrite && write_passed(passed, chi2_med, αgood)
         end
-    #
+        #
     end
 
     return -imag.(Gout) / π, Gout, Gᵣ
@@ -475,12 +474,7 @@ final spectral function and reproduced correlator.
 ### Returns
 N/A
 """
-function last(
-    SC::StochPXContext,
-    Aout::Vector{F64},
-    Gout::Vector{C64},
-    Gᵣ::Vector{F64}
-    )
+function last(SC::StochPXContext, Aout::Vector{F64}, Gout::Vector{C64}, Gᵣ::Vector{F64})
     # By default, we should write the analytic continuation results
     # into the external files.
     _fwrite = get_b("fwrite")
@@ -520,12 +514,7 @@ simulated annealing algorithm. Here, `t` means the t-th attempt.
 ### Returns
 N/A
 """
-function sample(
-    t::I64,
-    MC::StochPXMC,
-    SE::StochPXElement,
-    SC::StochPXContext
-    )
+function sample(t::I64, MC::StochPXMC, SE::StochPXElement, SC::StochPXContext)
     # Try to change positions of poles
     if rand(MC.rng) < 0.5
         if rand(MC.rng) < 0.9
@@ -533,7 +522,7 @@ function sample(
         else
             try_move_p(t, MC, SE, SC)
         end
-    # Try to change amplitudes of poles
+        # Try to change amplitudes of poles
     else
         if rand(MC.rng) < 0.5
             try_move_a(t, MC, SE, SC)
@@ -655,11 +644,7 @@ return a StochPXElement struct. Note that `allow` is generated in the
 
 See also: [`StochPXElement`](@ref).
 """
-function init_element(
-    S::StochPXSolver,
-    rng::AbstractRNG,
-    allow::Vector{I64}
-    )
+function init_element(S::StochPXSolver, rng::AbstractRNG, allow::Vector{I64})
     offdiag = get_b("offdiag")
     npole = get_x("npole")
 
@@ -747,8 +732,8 @@ function init_context(
     SE::StochPXElement,
     grid::AbstractGrid,
     fmesh::AbstractMesh,
-    Gᵥ::Vector{F64}
-    )
+    Gᵥ::Vector{F64},
+)
     # Extract some parameters
     ntry = get_x("ntry")
     npole = get_x("npole")
@@ -775,7 +760,7 @@ function init_context(
     𝕊ᵥ = Vector{F64}[]
     #
     for _ = 1:ntry
-        push!(Pᵥ,  ones(I64, npole))
+        push!(Pᵥ, ones(I64, npole))
         push!(Aᵥ, zeros(F64, npole))
         push!(𝕊ᵥ, zeros(F64, npole))
     end
@@ -828,11 +813,7 @@ Be careful, the corresponding χ² (goodness-of-fit functional) and Gᵧ
 ### Returns
 N/A
 """
-function reset_element(
-    rng::AbstractRNG,
-    allow::Vector{I64},
-    SE::StochPXElement
-    )
+function reset_element(rng::AbstractRNG, allow::Vector{I64}, SE::StochPXElement)
     offdiag = get_b("offdiag")
     npole = get_x("npole")
 
@@ -861,7 +842,7 @@ function reset_element(
         hselect₊ = length(selected₊)
         #
         # For poles that with negative weights
-        selected₋ = rand(rng, hpole+1:npole, hselect)
+        selected₋ = rand(rng, (hpole+1):npole, hselect)
         unique!(selected₋)
         hselect₋ = length(selected₋)
 
@@ -874,7 +855,7 @@ function reset_element(
             allow₋ = filter(x -> x < 0.0, allow)
             P₋ = rand(rng, allow₋, hselect₋)
             @. SE.P[selected₋] = abs.(P₋)
-        # Change poles' amplitudes
+            # Change poles' amplitudes
         else
             # For positive-weight poles
             A₁₊ = SE.A[selected₊]
@@ -896,7 +877,7 @@ function reset_element(
             #
             @. SE.A[selected₋] = A₂₋
         end
-    # For diagonal elements
+        # For diagonal elements
     else
         # How many poles should be changed
         if npole ≤ 5
@@ -919,7 +900,7 @@ function reset_element(
         if rand(rng) < 0.5
             P = rand(rng, allow, nselect)
             @. SE.P[selected] = P
-        # Change poles' amplitudes
+            # Change poles' amplitudes
         else
             A₁ = SE.A[selected]
             s₁ = sum(A₁)
@@ -996,7 +977,7 @@ function calc_fmesh(S::StochPXSolver)
         end
         #
         fmesh = DynamicMesh(mesh)
-    # Or else we will return a linear mesh directly.
+        # Or else we will return a linear mesh directly.
     else
         fmesh = LinearMesh(nfine, wmin, wmax)
     end
@@ -1145,27 +1126,23 @@ driver function. Note that Λ depends on the kernel's type (`ktype`).
 ### Returns
 * Λ -> The kernel matrix, a 2D array.
 """
-function calc_lambda(
-    grid::AbstractGrid,
-    fmesh::AbstractMesh,
-    Gᵥ::Vector{F64}
-    )
+function calc_lambda(grid::AbstractGrid, fmesh::AbstractMesh, Gᵥ::Vector{F64})
     ktype = get_b("ktype")
     χ₀ = -Gᵥ[1]
 
     @cswitch ktype begin
         #
         @case "fermi"
-            Λ = calc_lambda(grid, fmesh)
-            break
+        Λ = calc_lambda(grid, fmesh)
+        break
         #
         @case "boson"
-            Λ = calc_lambda(grid, fmesh, χ₀, false)
-            break
+        Λ = calc_lambda(grid, fmesh, χ₀, false)
+        break
         #
         @case "bsymm"
-            Λ = calc_lambda(grid, fmesh, χ₀, true)
-            break
+        Λ = calc_lambda(grid, fmesh, χ₀, true)
+        break
         #
     end
 
@@ -1194,7 +1171,7 @@ function calc_lambda(grid::AbstractGrid, fmesh::AbstractMesh)
     for i in eachindex(grid)
         iωₙ = im * grid[i]
         for j in eachindex(fmesh)
-            _Λ[i,j] = 1.0 / (iωₙ - fmesh[j])
+            _Λ[i, j] = 1.0 / (iωₙ - fmesh[j])
         end
     end
     #
@@ -1225,12 +1202,7 @@ true, the kernel is `bsymm`. This function is for the bosonic systems.
 ### Returns
 * Λ -> The kernel matrix, a 2D array.
 """
-function calc_lambda(
-    grid::AbstractGrid,
-    fmesh::AbstractMesh,
-    χ₀::F64,
-    bsymm::Bool
-    )
+function calc_lambda(grid::AbstractGrid, fmesh::AbstractMesh, χ₀::F64, bsymm::Bool)
     ngrid = get_b("ngrid")
     nfine = get_x("nfine")
 
@@ -1242,18 +1214,18 @@ function calc_lambda(
         for i in eachindex(grid)
             iωₙ = im * grid[i]
             for j in eachindex(fmesh)
-                _Λ[i,j] = χ₀ * fmesh[j] / (iωₙ - fmesh[j])
+                _Λ[i, j] = χ₀ * fmesh[j] / (iωₙ - fmesh[j])
             end
         end
         #
         # Special treatment for iωₙ = 0
         for j in eachindex(fmesh)
-            _Λ[1,j] = -χ₀
+            _Λ[1, j] = -χ₀
         end
 
         Λ = vcat(real(_Λ), imag(_Λ))
 
-    # For symmetric bosonic kernel matrix
+        # For symmetric bosonic kernel matrix
     else
 
         _Λ = zeros(F64, ngrid, nfine)
@@ -1261,13 +1233,13 @@ function calc_lambda(
         for i in eachindex(grid)
             ωₙ = grid[i]
             for j in eachindex(fmesh)
-                _Λ[i,j] = -χ₀ * (fmesh[j] ^ 2.0) / (ωₙ ^ 2.0 + fmesh[j] ^ 2.0)
+                _Λ[i, j] = -χ₀ * (fmesh[j] ^ 2.0) / (ωₙ ^ 2.0 + fmesh[j] ^ 2.0)
             end
         end
         #
         # Special treatment for ωₙ = 0
         for j in eachindex(fmesh)
-            _Λ[1,j] = -χ₀
+            _Λ[1, j] = -χ₀
         end
         #
         Λ = copy(_Λ)
@@ -1306,16 +1278,16 @@ function calc_green(t::I64, SC::StochPXContext, real_axis::Bool)
     χ₀ = -SC.Gᵥ[1]
     @cswitch ktype begin
         @case "fermi"
-            G = calc_green(SC.Pᵥ[t], SC.Aᵥ[t], SC.𝕊ᵥ[t], SC.mesh, SC.fmesh)
-            break
+        G = calc_green(SC.Pᵥ[t], SC.Aᵥ[t], SC.𝕊ᵥ[t], SC.mesh, SC.fmesh)
+        break
 
         @case "boson"
-            G = calc_green(SC.Pᵥ[t], SC.Aᵥ[t], SC.𝕊ᵥ[t], SC.mesh, SC.fmesh, χ₀, false)
-            break
+        G = calc_green(SC.Pᵥ[t], SC.Aᵥ[t], SC.𝕊ᵥ[t], SC.mesh, SC.fmesh, χ₀, false)
+        break
 
         @case "bsymm"
-            G = calc_green(SC.Pᵥ[t], SC.Aᵥ[t], SC.𝕊ᵥ[t], SC.mesh, SC.fmesh, χ₀, true)
-            break
+        G = calc_green(SC.Pᵥ[t], SC.Aᵥ[t], SC.𝕊ᵥ[t], SC.mesh, SC.fmesh, χ₀, true)
+        break
     end
 
     return G
@@ -1340,18 +1312,13 @@ Reconstruct Green's function at imaginary axis by the pole expansion.
 ### Returns
 * G -> Reconstructed Green's function, G(iωₙ).
 """
-function calc_green(
-    P::Vector{I64},
-    A::Vector{F64},
-    𝕊::Vector{F64},
-    Λ::Array{F64,2}
-    )
+function calc_green(P::Vector{I64}, A::Vector{F64}, 𝕊::Vector{F64}, Λ::Array{F64,2})
     # Note that here `ngrid` is equal to 2 × ngrid sometimes.
     ngrid, _ = size(Λ)
 
     G = zeros(F64, ngrid)
     for i = 1:ngrid
-        G[i] = dot(A .* 𝕊, Λ[i,P])
+        G[i] = dot(A .* 𝕊, Λ[i, P])
     end
 
     return G
@@ -1384,15 +1351,15 @@ function calc_green(
     A::Vector{F64},
     𝕊::Vector{F64},
     mesh::AbstractMesh,
-    fmesh::AbstractMesh
-    )
+    fmesh::AbstractMesh,
+)
     η = get_x("eta")
     nmesh = length(mesh)
 
     iωₙ = mesh.mesh .+ im * η
     G = zeros(C64, nmesh)
     for i in eachindex(mesh)
-        G[i] = sum( @. (A * 𝕊) / (iωₙ[i] - fmesh.mesh[P]) )
+        G[i] = sum(@. (A * 𝕊) / (iωₙ[i] - fmesh.mesh[P]))
     end
 
     return G
@@ -1434,8 +1401,8 @@ function calc_green(
     mesh::AbstractMesh,
     fmesh::AbstractMesh,
     χ₀::F64,
-    bsymm::Bool
-    )
+    bsymm::Bool,
+)
     η = get_x("eta")
     nmesh = length(mesh)
 
@@ -1444,17 +1411,17 @@ function calc_green(
     if bsymm == false
         _A = A .* 𝕊 .* χ₀ .* fmesh.mesh[P]
         for i in eachindex(mesh)
-            G[i] = sum( @. _A / (iωₙ[i] - fmesh.mesh[P]) )
+            G[i] = sum(@. _A / (iωₙ[i] - fmesh.mesh[P]))
         end
-    #
+        #
     else
         _A = A .* 𝕊 .* χ₀ .* fmesh.mesh[P] .* 0.5
         for i in eachindex(mesh)
-            G₊ = sum( @. _A / (iωₙ[i] - fmesh.mesh[P]) )
-            G₋ = sum( @. _A / (iωₙ[i] + fmesh.mesh[P]) )
+            G₊ = sum(@. _A / (iωₙ[i] - fmesh.mesh[P]))
+            G₋ = sum(@. _A / (iωₙ[i] + fmesh.mesh[P]))
             G[i] = G₊ - G₋
         end
-    #
+        #
     end
 
     return G
@@ -1563,12 +1530,7 @@ N/A
 
 See also: [`try_move_p`](@ref).
 """
-function try_move_s(
-    t::I64,
-    MC::StochPXMC,
-    SE::StochPXElement,
-    SC::StochPXContext
-    )
+function try_move_s(t::I64, MC::StochPXMC, SE::StochPXElement, SC::StochPXContext)
     # Get parameters
     ngrid = length(SC.Gᵥ) # get_b("ngrid")
     nfine = get_x("nfine")
@@ -1660,12 +1622,7 @@ N/A
 
 See also: [`try_move_s`](@ref).
 """
-function try_move_p(
-    t::I64,
-    MC::StochPXMC,
-    SE::StochPXElement,
-    SC::StochPXContext
-    )
+function try_move_p(t::I64, MC::StochPXMC, SE::StochPXElement, SC::StochPXContext)
     # Get parameters
     ngrid = length(SC.Gᵥ) # get_b("ngrid")
     npole = get_x("npole")
@@ -1769,12 +1726,7 @@ N/A
 
 See also: [`try_move_x`](@ref).
 """
-function try_move_a(
-    t::I64,
-    MC::StochPXMC,
-    SE::StochPXElement,
-    SC::StochPXContext
-    )
+function try_move_a(t::I64, MC::StochPXMC, SE::StochPXElement, SC::StochPXContext)
     # Get parameters
     ngrid = length(SC.Gᵥ) # get_b("ngrid")
     npole = get_x("npole")
@@ -1918,7 +1870,7 @@ function try_move_x(t::I64, MC::StochPXMC, SE::StochPXElement, SC::StochPXContex
         # but their signs should be the same.
         s₁ = 1
         s₂ = 1
-        while ( s₁ == s₂ ) || ( SE.𝕊[s₁] != SE.𝕊[s₂] )
+        while (s₁ == s₂) || (SE.𝕊[s₁] != SE.𝕊[s₂])
             s₁ = rand(MC.rng, 1:npole)
             s₂ = rand(MC.rng, 1:npole)
         end

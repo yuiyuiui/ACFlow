@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Printf
 using ACFlow
@@ -9,37 +9,38 @@ using ACFlow
 wmin = -5.00 # Left boundary
 wmax = +5.00 # Right boundary
 nmesh = 1001 # Number of real-frequency points
-niw  = 50    # Number of Matsubara frequencies
+niw = 50    # Number of Matsubara frequencies
 beta = 100.0 # Inverse temperature
-ϵ₁   = 1.00  # Parameters for gaussian peaks
-ϵ₂   = -3.0
-ϵ₃   = 4.50
-A₁   = 0.30
-A₂   = 0.50
-A₃   = 0.20
-η    = 0.001
+ϵ₁ = 1.00  # Parameters for gaussian peaks
+ϵ₂ = -3.0
+ϵ₃ = 4.50
+A₁ = 0.30
+A₂ = 0.50
+A₃ = 0.20
+η = 0.001
 
 # Real frequency mesh
 rmesh = collect(LinRange(wmin, wmax, nmesh))
 
 # Spectral function
-Lorentzian(x, μ, γ) = γ / ( π * ( ( x - μ )^2.0 + γ^2.0 ) )
-rho(omega) = A₁ * Lorentzian(omega, ϵ₁, η) +
-             A₂ * Lorentzian(omega, ϵ₂, η) +
-             A₃ * Lorentzian(omega, ϵ₃, η)
+Lorentzian(x, μ, γ) = γ / (π * ((x - μ)^2.0 + γ^2.0))
+rho(omega) =
+    A₁ * Lorentzian(omega, ϵ₁, η) +
+    A₂ * Lorentzian(omega, ϵ₂, η) +
+    A₃ * Lorentzian(omega, ϵ₃, η)
 image = rho.(rmesh)
 
 # Matsubara frequency mesh
-iw = π / beta * (2.0 * collect(0:niw-1) .+ 1.0)
+iw = π / beta * (2.0 * collect(0:(niw-1)) .+ 1.0)
 
 # Kernel function
-kernel = 1.0 ./ (im * reshape(iw, (niw,1)) .- reshape(rmesh, (1,nmesh)))
+kernel = 1.0 ./ (im * reshape(iw, (niw, 1)) .- reshape(rmesh, (1, nmesh)))
 
 # Build green's function
-KA = kernel .* reshape(image, (1,nmesh))
+KA = kernel .* reshape(image, (1, nmesh))
 giw = zeros(C64, niw)
 for i in eachindex(giw)
-    giw[i] = trapz(rmesh, KA[i,:])
+    giw[i] = trapz(rmesh, KA[i, :])
 end
 
 # Build error

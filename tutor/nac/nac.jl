@@ -10,8 +10,15 @@ wn, GFV, A = nac_dfcfg_cont()
 
 res = solve(wn, GFV)
 
-plot(res[1], res[2], label="reconstructed A(ω)", xlabel="ω", ylabel="A(ω)", title="NAC, cont type")
-plot!(res[1], A.(res[1]), label="original A(ω)")
+plot(
+    res[1],
+    res[2],
+    label = "reconstructed A(ω)",
+    xlabel = "ω",
+    ylabel = "A(ω)",
+    title = "NAC, cont type",
+)
+plot!(res[1], A.(res[1]), label = "original A(ω)")
 # ---------------------------------------------------
 # delta situation
 # ---------------------------------------------------
@@ -24,10 +31,19 @@ wn, GFV, (poles, γ) = nac_dfcfg_delta()
 
 res = solve(wn, GFV)
 
-plot(res[1], res[2], label="reconstructed A(ω)", xlabel="ω", ylabel="A(ω)", title="NAC, delta type")
-scatter!(poles, fill(0.0, length(poles)), 
-    label="original poles", 
-    markershape=:circle,
-    markersize=4,
-    markercolor=:red
+plot(
+    res[1],
+    res[2],
+    label = "reconstructed A(ω)",
+    xlabel = "ω",
+    ylabel = "A(ω)",
+    title = "NAC, delta type",
+)
+scatter!(
+    poles,
+    fill(0.0, length(poles)),
+    label = "original poles",
+    markershape = :circle,
+    markersize = 4,
+    markercolor = :red,
 )

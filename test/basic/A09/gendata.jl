@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Random
 using Printf
@@ -12,10 +12,10 @@ wmax = +5.0  # Right boundary
 nmesh = 2001 # Number of real-frequency points
 ntau = 1001  # Number of imaginary time points
 beta = 5.00  # Inverse temperature
-ϵ₁   = 2.00  # Parameters for gaussian peaks
-ϵ₂   = -2.0
-Γ₁   = 0.50
-Γ₂   = 0.50
+ϵ₁ = 2.00  # Parameters for gaussian peaks
+ϵ₂ = -2.0
+Γ₁ = 0.50
+Γ₂ = 0.50
 
 # Real frequency mesh
 rmesh = collect(LinRange(wmin, wmax, nmesh))
@@ -23,7 +23,7 @@ rmesh = collect(LinRange(wmin, wmax, nmesh))
 # Spectral function
 image = similar(rmesh)
 #
-@. image  = exp(-(rmesh - ϵ₁) ^ 2.0 / (2.0 * Γ₁ ^ 2.0)) / (sqrt(2.0 * π) * Γ₁)
+@. image = exp(-(rmesh - ϵ₁) ^ 2.0 / (2.0 * Γ₁ ^ 2.0)) / (sqrt(2.0 * π) * Γ₁)
 @. image += exp(-(rmesh - ϵ₂) ^ 2.0 / (2.0 * Γ₂ ^ 2.0)) / (sqrt(2.0 * π) * Γ₂)
 #
 image = image ./ trapz(rmesh, image)

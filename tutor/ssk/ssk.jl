@@ -2,7 +2,7 @@ using ACFlow
 using Plots
 include("../method.jl")
 
-wn, GFV, (p,γ) = ssk_dfcfg_delta()
+wn, GFV, (p, γ) = ssk_dfcfg_delta()
 
 res = solve(wn, GFV)
 
@@ -10,4 +10,4 @@ res = solve(wn, GFV)
 
 rep = res[1][find_peaks(res[2], 1)]
 
-norm(rep- p)
+norm(rep - p)

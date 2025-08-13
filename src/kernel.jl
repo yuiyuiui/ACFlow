@@ -366,20 +366,20 @@ function build_kernel(am::AbstractMesh, fg::FermionicImaginaryTimeGrid)
         if am[i] ≥ 0.0
             de = 1.0 + exp(-β * am[i])
             for j = 1:ntime
-                kernel[j,i] = exp(-fg[j] * am[i]) / de
+                kernel[j, i] = exp(-fg[j] * am[i]) / de
             end
-        # ω < 0.0
+            # ω < 0.0
         else
             for j = 1:ntime
                 # Now denominator goes to infinity and K goes to zero.
                 if (fg[j] - β) * am[i] ≥ 700.0
-                    kernel[j,i] = 0.0
+                    kernel[j, i] = 0.0
                 else
                     # de1 is always smaller than 1.0 because τω < 0.0.
                     # de2 could be a large number.
                     de1 = exp(fg[j] * am[i])
                     de2 = exp((fg[j] - β) * am[i])
-                    kernel[j,i] = 1.0 / (de1 + de2)
+                    kernel[j, i] = 1.0 / (de1 + de2)
                 end
             end
         end
@@ -429,20 +429,20 @@ function build_kernel(am::AbstractMesh, fg::FermionicFragmentTimeGrid)
         if am[i] ≥ 0.0
             de = 1.0 + exp(-β * am[i])
             for j = 1:ntime
-                kernel[j,i] = exp(-fg[j] * am[i]) / de
+                kernel[j, i] = exp(-fg[j] * am[i]) / de
             end
-        # ω < 0.0
+            # ω < 0.0
         else
             for j = 1:ntime
                 # Now denominator goes to infinity and K goes to zero.
                 if (fg[j] - β) * am[i] ≥ 700.0
-                    kernel[j,i] = 0.0
+                    kernel[j, i] = 0.0
                 else
                     # de1 is always smaller than 1.0 because τω < 0.0.
                     # de2 could be a large number.
                     de1 = exp(fg[j] * am[i])
                     de2 = exp((fg[j] - β) * am[i])
-                    kernel[j,i] = 1.0 / (de1 + de2)
+                    kernel[j, i] = 1.0 / (de1 + de2)
                 end
             end
         end
@@ -477,10 +477,10 @@ function build_kernel(am::AbstractMesh, fg::FermionicMatsubaraGrid)
     if blur isa Missing || blur < 0.0
         for i = 1:nmesh
             for j = 1:nfreq
-                _kernel[j,i] = 1.0 / (im * fg[j] - am[i])
+                _kernel[j, i] = 1.0 / (im * fg[j] - am[i])
             end
         end
-    # The preblur trick is used
+        # The preblur trick is used
     else
         bmesh, gaussian = make_gauss_peaks(blur)
         nsize = length(bmesh)
@@ -491,7 +491,7 @@ function build_kernel(am::AbstractMesh, fg::FermionicMatsubaraGrid)
                 for k = 1:nsize
                     integrand[k] = gaussian[k] / (z - bmesh[k])
                 end
-                _kernel[j,i] = simpson(bmesh, integrand)
+                _kernel[j, i] = simpson(bmesh, integrand)
             end
         end
     end
@@ -527,10 +527,10 @@ function build_kernel(am::AbstractMesh, fg::FermionicFragmentMatsubaraGrid)
     if blur isa Missing || blur < 0.0
         for i = 1:nmesh
             for j = 1:nfreq
-                _kernel[j,i] = 1.0 / (im * fg[j] - am[i])
+                _kernel[j, i] = 1.0 / (im * fg[j] - am[i])
             end
         end
-    # The preblur trick is used
+        # The preblur trick is used
     else
         bmesh, gaussian = make_gauss_peaks(blur)
         nsize = length(bmesh)
@@ -541,7 +541,7 @@ function build_kernel(am::AbstractMesh, fg::FermionicFragmentMatsubaraGrid)
                 for k = 1:nsize
                     integrand[k] = gaussian[k] / (z - bmesh[k])
                 end
-                _kernel[j,i] = simpson(bmesh, integrand)
+                _kernel[j, i] = simpson(bmesh, integrand)
             end
         end
     end
@@ -575,7 +575,7 @@ function build_kernel(am::AbstractMesh, bg::BosonicImaginaryTimeGrid)
     for i = 1:nmesh
         de = 1.0 - exp(-β * am[i])
         for j = 1:ntime
-            kernel[j,i] = am[i] * exp(-bg[j] * am[i]) / de
+            kernel[j, i] = am[i] * exp(-bg[j] * am[i]) / de
         end
     end
     #
@@ -583,7 +583,7 @@ function build_kernel(am::AbstractMesh, bg::BosonicImaginaryTimeGrid)
     # We have to find out where the zero point is in the real mesh.
     _, zero_point = findmin(abs.(am.mesh))
     if am[zero_point] == 0.0
-        @. kernel[:,zero_point] = 1.0 / β
+        @. kernel[:, zero_point] = 1.0 / β
     end
 
     return kernel
@@ -614,7 +614,7 @@ function build_kernel(am::AbstractMesh, bg::BosonicFragmentTimeGrid)
     for i = 1:nmesh
         de = 1.0 - exp(-β * am[i])
         for j = 1:ntime
-            kernel[j,i] = am[i] * exp(-bg[j] * am[i]) / de
+            kernel[j, i] = am[i] * exp(-bg[j] * am[i]) / de
         end
     end
     #
@@ -622,7 +622,7 @@ function build_kernel(am::AbstractMesh, bg::BosonicFragmentTimeGrid)
     # We have to find out where the zero point is in the real mesh.
     _, zero_point = findmin(abs.(am.mesh))
     if am[zero_point] == 0.0
-        @. kernel[:,zero_point] = 1.0 / β
+        @. kernel[:, zero_point] = 1.0 / β
     end
 
     return kernel
@@ -650,7 +650,7 @@ function build_kernel(am::AbstractMesh, bg::BosonicMatsubaraGrid)
     #
     for i = 1:nmesh
         for j = 1:nfreq
-            _kernel[j,i] = am[i] / (im * bg[j] - am[i])
+            _kernel[j, i] = am[i] / (im * bg[j] - am[i])
         end
     end
     #
@@ -658,7 +658,7 @@ function build_kernel(am::AbstractMesh, bg::BosonicMatsubaraGrid)
     # We have to find out where the zero point is in the real mesh.
     _, zero_point = findmin(abs.(am.mesh))
     if am[zero_point] == 0.0 && bg[1] == 0.0
-        _kernel[1,zero_point] = -1.0
+        _kernel[1, zero_point] = -1.0
     end
     #
     kernel = vcat(real(_kernel), imag(_kernel))
@@ -688,7 +688,7 @@ function build_kernel(am::AbstractMesh, bg::BosonicFragmentMatsubaraGrid)
     #
     for i = 1:nmesh
         for j = 1:nfreq
-            _kernel[j,i] = am[i] / (im * bg[j] - am[i])
+            _kernel[j, i] = am[i] / (im * bg[j] - am[i])
         end
     end
     #
@@ -696,7 +696,7 @@ function build_kernel(am::AbstractMesh, bg::BosonicFragmentMatsubaraGrid)
     # We have to find out where the zero point is in the real mesh.
     _, zero_point = findmin(abs.(am.mesh))
     if am[zero_point] == 0.0 && bg[1] == 0.0
-        _kernel[1,zero_point] = -1.0
+        _kernel[1, zero_point] = -1.0
     end
     #
     kernel = vcat(real(_kernel), imag(_kernel))
@@ -729,13 +729,13 @@ function build_kernel_symm(am::AbstractMesh, bg::BosonicImaginaryTimeGrid)
     for i = 1:nmesh
         r = am[i] / (1.0 - exp(-β * am[i]))
         for j = 1:ntime
-            kernel[j,i] = r * (exp(-am[i] * bg[j]) + exp(-am[i] * (β - bg[j])))
+            kernel[j, i] = r * (exp(-am[i] * bg[j]) + exp(-am[i] * (β - bg[j])))
         end
     end
     #
     # Perhaps we should check am[1] here!
     @assert am[1] == 0.0
-    @. kernel[:,1] = 2.0 / β
+    @. kernel[:, 1] = 2.0 / β
 
     return kernel
 end
@@ -766,13 +766,13 @@ function build_kernel_symm(am::AbstractMesh, bg::BosonicFragmentTimeGrid)
     for i = 1:nmesh
         r = am[i] / (1.0 - exp(-β * am[i]))
         for j = 1:ntime
-            kernel[j,i] = r * (exp(-am[i] * bg[j]) + exp(-am[i] * (β - bg[j])))
+            kernel[j, i] = r * (exp(-am[i] * bg[j]) + exp(-am[i] * (β - bg[j])))
         end
     end
     #
     # Perhaps we should check am[1] here!
     @assert am[1] == 0.0
-    @. kernel[:,1] = 2.0 / β
+    @. kernel[:, 1] = 2.0 / β
 
     return kernel
 end
@@ -804,16 +804,16 @@ function build_kernel_symm(am::AbstractMesh, bg::BosonicMatsubaraGrid)
     if blur isa Missing || blur < 0.0
         for i = 1:nmesh
             for j = 1:nfreq
-                kernel[j,i] = am[i] ^ 2.0 / ( bg[j] ^ 2.0 + am[i] ^ 2.0 )
-                kernel[j,i] = -2.0 * kernel[j,i]
+                kernel[j, i] = am[i] ^ 2.0 / (bg[j] ^ 2.0 + am[i] ^ 2.0)
+                kernel[j, i] = -2.0 * kernel[j, i]
             end
         end
         #
         # Perhaps we should check am[i] and bg[j] here!
         if am[1] == 0.0 && bg[1] == 0.0
-            kernel[1,1] = -2.0
+            kernel[1, 1] = -2.0
         end
-    # The preblur trick is used
+        # The preblur trick is used
     else
         bmesh, gaussian = make_gauss_peaks(blur)
         nsize = length(bmesh)
@@ -826,8 +826,10 @@ function build_kernel_symm(am::AbstractMesh, bg::BosonicMatsubaraGrid)
             for j = 1:nfreq
                 g² = bg[j] ^ 2.0
                 for k = 1:nsize
-                    A² = (bmesh[k] + am[i]) ^ 2.0; I₁[k] = -2.0 * A² / (A² + g²)
-                    B² = (bmesh[k] - am[i]) ^ 2.0; I₂[k] = -2.0 * B² / (B² + g²)
+                    A² = (bmesh[k] + am[i]) ^ 2.0;
+                    I₁[k] = -2.0 * A² / (A² + g²)
+                    B² = (bmesh[k] - am[i]) ^ 2.0;
+                    I₂[k] = -2.0 * B² / (B² + g²)
                 end
                 #
                 # Perhaps we should check am[i] and bg[j] here!
@@ -838,7 +840,7 @@ function build_kernel_symm(am::AbstractMesh, bg::BosonicMatsubaraGrid)
                     I₂ .= -2.0
                 end
                 @. I₃ = (I₁ + I₂) * gaussian / 2.0
-                kernel[j,i] = simpson(bmesh, I₃)
+                kernel[j, i] = simpson(bmesh, I₃)
             end
         end
     end
@@ -873,16 +875,16 @@ function build_kernel_symm(am::AbstractMesh, bg::BosonicFragmentMatsubaraGrid)
     if blur isa Missing || blur < 0.0
         for i = 1:nmesh
             for j = 1:nfreq
-                kernel[j,i] = am[i] ^ 2.0 / ( bg[j] ^ 2.0 + am[i] ^ 2.0 )
-                kernel[j,i] = -2.0 * kernel[j,i]
+                kernel[j, i] = am[i] ^ 2.0 / (bg[j] ^ 2.0 + am[i] ^ 2.0)
+                kernel[j, i] = -2.0 * kernel[j, i]
             end
         end
         #
         # Perhaps we should check am[i] and bg[j] here!
         if am[1] == 0.0 && bg[1] == 0.0
-            kernel[1,1] = -2.0
+            kernel[1, 1] = -2.0
         end
-    # The preblur trick is used
+        # The preblur trick is used
     else
         bmesh, gaussian = make_gauss_peaks(blur)
         nsize = length(bmesh)
@@ -895,8 +897,10 @@ function build_kernel_symm(am::AbstractMesh, bg::BosonicFragmentMatsubaraGrid)
             for j = 1:nfreq
                 g² = bg[j] ^ 2.0
                 for k = 1:nsize
-                    A² = (bmesh[k] + am[i]) ^ 2.0; I₁[k] = -2.0 * A² / (A² + g²)
-                    B² = (bmesh[k] - am[i]) ^ 2.0; I₂[k] = -2.0 * B² / (B² + g²)
+                    A² = (bmesh[k] + am[i]) ^ 2.0;
+                    I₁[k] = -2.0 * A² / (A² + g²)
+                    B² = (bmesh[k] - am[i]) ^ 2.0;
+                    I₂[k] = -2.0 * B² / (B² + g²)
                 end
                 #
                 # Perhaps we should check am[i] and bg[j] here!
@@ -907,7 +911,7 @@ function build_kernel_symm(am::AbstractMesh, bg::BosonicFragmentMatsubaraGrid)
                     I₂ .= -2.0
                 end
                 @. I₃ = (I₁ + I₂) * gaussian / 2.0
-                kernel[j,i] = simpson(bmesh, I₃)
+                kernel[j, i] = simpson(bmesh, I₃)
             end
         end
     end
@@ -978,8 +982,8 @@ function make_singular_space(kernel::Matrix{F64})
     U, S, V = svd(kernel)
 
     n_svd = count(x -> x ≥ 1e-10, S)
-    U_svd = U[:,1:n_svd]
-    V_svd = V[:,1:n_svd]
+    U_svd = U[:, 1:n_svd]
+    V_svd = V[:, 1:n_svd]
     S_svd = S[1:n_svd]
 
     return U_svd, V_svd, S_svd

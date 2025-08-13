@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using ACFlow
 using Printf
@@ -26,7 +26,7 @@ open("chiw.data", "r") do fin
             arr = line_to_array(fin)
             _re, _im = parse.(F64, arr[3:4])
             grid[i] = parse(F64, arr[2])
-            chiw[k,i] = _re + _im * im
+            chiw[k, i] = _re + _im * im
         end
     end
 end
@@ -43,32 +43,28 @@ for k = 1:nkpt
     B = Dict{String,Any}(
         "finput" => "chiw.data",
         "solver" => "MaxEnt",
-        "ktype"  => "bsymm",
-        "mtype"  => "flat",
-        "grid"   => "bfreq",
-        "mesh"   => "linear",
-        "ngrid"  => 20,
-        "nmesh"  => 501,
-        "wmax"   => 2.5,
-        "wmin"   => 0.0,
-        "beta"   => 50.0,
+        "ktype" => "bsymm",
+        "mtype" => "flat",
+        "grid" => "bfreq",
+        "mesh" => "linear",
+        "ngrid" => 20,
+        "nmesh" => 501,
+        "wmax" => 2.5,
+        "wmin" => 0.0,
+        "beta" => 50.0,
     )
     #
     # For [MaxEnt] block
     # See types.jl/_PMaxEnt for default setup
-    S = Dict{String,Any}(
-        "method" => "chi2kink",
-        "nalph"  => 14,
-        "alpha"  => 1e12,
-    )
+    S = Dict{String,Any}("method" => "chi2kink", "nalph" => 14, "alpha" => 1e12)
     #
     setup_param(B, S)
 
     # Call the solver
-    mesh[:], Aout, Gout = solve(grid, chiw[k,:])
+    mesh[:], Aout, Gout = solve(grid, chiw[k, :])
 
     # Store spectral density
-    Akw[k,:] = mesh .* Aout
+    Akw[k, :] = mesh .* Aout
 
     # Backup calculated results
     cp("Aout.data", "Aout.data.$k", force = true)
@@ -82,7 +78,7 @@ end
 open("Akw.data", "w") do fout
     for k = 1:nkpt
         for i = 1:nmesh
-            @printf(fout, "%5i %20.16f %20.16f\n", k, mesh[i], Akw[k,i])
+            @printf(fout, "%5i %20.16f %20.16f\n", k, mesh[i], Akw[k, i])
         end
     end
 end

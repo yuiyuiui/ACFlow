@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using ACFlow
 
@@ -14,20 +14,17 @@ welcome()
 # See types.jl/_PBASE for default setup
 B = Dict{String,Any}(
     "finput" => "siw.inp",
-    "mtype"  => "2lorentz",
-    "ngrid"  => 100,
-    "wmax"   => 20.0,
-    "wmin"   => -20.0,
-    "beta"   => 5.0,
+    "mtype" => "2lorentz",
+    "ngrid" => 100,
+    "wmax" => 20.0,
+    "wmin" => -20.0,
+    "beta" => 5.0,
     "pmodel" => [2.0, -5.0, 5.0],
 )
 #
 # For [MaxEnt] block
 # See types.jl/_PMaxEnt for default setup
-S = Dict{String,Any}(
-    "nalph"  => 15,
-    "alpha"  => 1e12,
-)
+S = Dict{String,Any}("nalph" => 15, "alpha" => 1e12)
 #
 setup_param(B, S)
 
@@ -45,15 +42,11 @@ cp("repr.data", "repr.mem.data", force = true)
 #
 # For [BASE] block
 # See types.jl/_PBASE for default setup
-B = Dict{String,Any}(
-    "solver" => "StochOM"
-)
+B = Dict{String,Any}("solver" => "StochOM")
 #
 # For [StochOM] block
 # See types.jl/_PStochOM for default setup
-S = Dict{String,Any}(
-    "ntry"   => 100000
-)
+S = Dict{String,Any}("ntry" => 100000)
 #
 setup_param(B, S, false)
 

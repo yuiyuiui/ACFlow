@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using DelimitedFiles
 using Printf
@@ -16,21 +16,17 @@ welcome()
 # See types.jl/_PBASE for default setup
 B = Dict{String,Any}(
     "finput" => "siw.inp",
-    "mtype"  => "gauss",
-    "mesh"   => "tangent",
-    "ngrid"  => 300,
-    "wmax"   => 30.0,
-    "wmin"   => -30.0,
-    "beta"   => 38.0,
+    "mtype" => "gauss",
+    "mesh" => "tangent",
+    "ngrid" => 300,
+    "wmax" => 30.0,
+    "wmin" => -30.0,
+    "beta" => 38.0,
 )
 #
 # For [MaxEnt] block
 # See types.jl/_PMaxEnt for default setup
-S = Dict{String,Any}(
-    "nalph"  => 13,
-    "alpha"  => 1e12,
-    "blur"   => 0.3,
-)
+S = Dict{String,Any}("nalph" => 13, "alpha" => 1e12, "blur" => 0.3)
 #
 setup_param(B, S)
 
@@ -51,10 +47,10 @@ cp("Gout.data", "sigma.mem1.data", force = true)
 dlm = readdlm("siw.inp")
 #
 # Get grid
-grid = dlm[:,1]
+grid = dlm[:, 1]
 #
 # Get self-energy function
-Σin = dlm[:,2] + im * dlm[:,3]
+Σin = dlm[:, 2] + im * dlm[:, 3]
 #
 # Calculate auxiliary green's function
 Gaux = 1.0 ./ (im * grid - Σin)
@@ -89,15 +85,11 @@ end
 #
 # For [BASE] block
 # See types.jl/_PBASE for default setup
-B = Dict{String,Any}(
-    "solver" => "StochOM",
-)
+B = Dict{String,Any}("solver" => "StochOM")
 #
 # For [StochOM] block
 # See types.jl/_PStochOM for default setup
-S = Dict{String,Any}(
-    "ntry"   => 100000
-)
+S = Dict{String,Any}("ntry" => 100000)
 #
 setup_param(B, S, false)
 

@@ -12,7 +12,7 @@
 # Tc = 269.64 MeV, T = 0.73Tc
 #
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using DelimitedFiles
 using Random
@@ -20,7 +20,7 @@ using Printf
 using ACFlow
 
 # Setup parameters
-niw  = 50    # Number of Matsubara frequencies
+niw = 50    # Number of Matsubara frequencies
 beta = 5.00  # Inverse temperature
 
 #
@@ -32,10 +32,10 @@ dlm = readdlm("Araw.inp", F64)
 nmesh, _ = size(dlm)
 
 # Real frequency mesh
-rmesh = dlm[:,1]
+rmesh = dlm[:, 1]
 
 # Spectral function
-image = dlm[:,2]
+image = dlm[:, 2]
 image = image ./ rmesh
 
 #
@@ -43,7 +43,7 @@ image = image ./ rmesh
 #
 
 # Matsubara frequency mesh
-iw = π / beta * (2.0 * collect(0:niw-1) .+ 0.0)
+iw = π / beta * (2.0 * collect(0:(niw-1)) .+ 0.0)
 
 # Noise
 seed = rand(1:100000000)
@@ -52,15 +52,16 @@ noise_ampl = 1.0e-4
 noise = randn(rng, F64, niw) * noise_ampl
 
 # Kernel function
-kernel = -2.0 * reshape(rmesh .^ 2.0, (1,nmesh)) ./
-         (reshape(iw .^ 2.0, (niw,1)) .+ reshape(rmesh .^ 2.0, (1,nmesh)))
-kernel[1,1] = -2.0
+kernel =
+    -2.0 * reshape(rmesh .^ 2.0, (1, nmesh)) ./
+    (reshape(iw .^ 2.0, (niw, 1)) .+ reshape(rmesh .^ 2.0, (1, nmesh)))
+kernel[1, 1] = -2.0
 
 # Build green's function
-KA = kernel .* reshape(image, (1,nmesh))
+KA = kernel .* reshape(image, (1, nmesh))
 chiw = zeros(F64, niw)
 for i in eachindex(chiw)
-    chiw[i] = trapz(rmesh, KA[i,:]) + noise[i]
+    chiw[i] = trapz(rmesh, KA[i, :]) + noise[i]
 end
 
 # Build error

@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Printf
 using ACFlow
@@ -17,21 +17,17 @@ welcome()
 # See types.jl/_PBASE for default setup
 B = Dict{String,Any}(
     "finput" => "giw.11.data",
-    "mtype"  => "gauss",
-    "ngrid"  => 20,
-    "nmesh"  => 500,
-    "wmax"   => 5.0,
-    "wmin"   => -5.0,
-    "beta"   => 40.0,
+    "mtype" => "gauss",
+    "ngrid" => 20,
+    "nmesh" => 500,
+    "wmax" => 5.0,
+    "wmin" => -5.0,
+    "beta" => 40.0,
 )
 #
 # For [MaxEnt] block
 # See types.jl/_PMaxEnt for default setup
-S = Dict{String,Any}(
-    "stype"  => "sj",
-    "nalph"  => 28,
-    "alpha"  => 1e18,
-)
+S = Dict{String,Any}("stype" => "sj", "nalph" => 28, "alpha" => 1e18)
 #
 setup_param(B, S)
 
@@ -49,14 +45,11 @@ cp("repr.data", "repr.11.data", force = true)
 #
 # For [BASE] block
 # See types.jl/_PBASE for default setup
-B = Dict{String,Any}(
-    "finput" => "giw.22.data",
-)
+B = Dict{String,Any}("finput" => "giw.22.data")
 #
 # For [MaxEnt] block
 # See types.jl/_PMaxEnt for default setup
-S = Dict{String,Any}(
-)
+S = Dict{String,Any}()
 #
 setup_param(B, S, false)
 
@@ -74,14 +67,11 @@ cp("repr.data", "repr.22.data", force = true)
 #
 # For [BASE] block
 # See types.jl/_PBASE for default setup
-B = Dict{String,Any}(
-    "finput" => "giw.aux12.data",
-)
+B = Dict{String,Any}("finput" => "giw.aux12.data")
 #
 # For [MaxEnt] block
 # See types.jl/_PMaxEnt for default setup
-S = Dict{String,Any}(
-)
+S = Dict{String,Any}()
 #
 setup_param(B, S, false)
 
@@ -99,14 +89,11 @@ cp("repr.data", "repr.aux12.data", force = true)
 #
 # For [BASE] block
 # See types.jl/_PBASE for default setup
-B = Dict{String,Any}(
-    "finput" => "giw.aux21.data",
-)
+B = Dict{String,Any}("finput" => "giw.aux21.data")
 #
 # For [MaxEnt] block
 # See types.jl/_PMaxEnt for default setup
-S = Dict{String,Any}(
-)
+S = Dict{String,Any}()
 #
 setup_param(B, S, false)
 
@@ -133,18 +120,11 @@ end
 #
 # For [BASE] block
 # See types.jl/_PBASE for default setup
-B = Dict{String,Any}(
-    "finput" => "giw.12.data",
-    "mtype"  => "file",
-    "offdiag"=> true,
-)
+B = Dict{String,Any}("finput" => "giw.12.data", "mtype" => "file", "offdiag" => true)
 #
 # For [MaxEnt] block
 # See types.jl/_PMaxEnt for default setup
-S = Dict{String,Any}(
-    "nalph"  => 30,
-    "alpha"  => 1e15,
-)
+S = Dict{String,Any}("nalph" => 30, "alpha" => 1e15)
 #
 setup_param(B, S, false)
 
@@ -162,18 +142,11 @@ cp("repr.data", "repr.12.data", force = true)
 #
 # For [BASE] block
 # See types.jl/_PBASE for default setup
-B = Dict{String,Any}(
-    "finput" => "giw.21.data",
-    "mtype"  => "file",
-    "offdiag"=> true,
-)
+B = Dict{String,Any}("finput" => "giw.21.data", "mtype" => "file", "offdiag" => true)
 #
 # For [MaxEnt] block
 # See types.jl/_PMaxEnt for default setup
-S = Dict{String,Any}(
-    "nalph"  => 30,
-    "alpha"  => 1e15,
-)
+S = Dict{String,Any}("nalph" => 30, "alpha" => 1e15)
 #
 setup_param(B, S, false)
 

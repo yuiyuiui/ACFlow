@@ -27,9 +27,9 @@ Carlo procedure.
 * W -> It denotes the window that is used to shift the δ functions.
 """
 mutable struct StochSKElement
-    P :: Vector{I64}
-    A :: F64
-    W :: I64
+    P::Vector{I64}
+    A::F64
+    W::I64
 end
 
 """
@@ -53,19 +53,19 @@ Mutable struct. It is used within the StochSK solver only.
 * Θvec   -> Vector of Θ parameter.
 """
 mutable struct StochSKContext
-    Gᵥ     :: Vector{F64}
-    Gᵧ     :: Vector{F64}
-    σ¹     :: Vector{F64}
-    allow  :: Vector{I64}
-    grid   :: AbstractGrid
-    mesh   :: AbstractMesh
-    kernel :: Array{F64,2}
-    Aout   :: Vector{F64}
-    χ²     :: F64
-    χ²min  :: F64
-    χ²vec  :: Vector{F64}
-    Θ      :: F64
-    Θvec   :: Vector{F64}
+    Gᵥ::Vector{F64}
+    Gᵧ::Vector{F64}
+    σ¹::Vector{F64}
+    allow::Vector{I64}
+    grid::AbstractGrid
+    mesh::AbstractMesh
+    kernel::Array{F64,2}
+    Aout::Vector{F64}
+    χ²::F64
+    χ²min::F64
+    χ²vec::Vector{F64}
+    Θ::F64
+    Θvec::Vector{F64}
 end
 
 #=
@@ -140,7 +140,7 @@ function solve(S::StochSKSolver, rd::RawData)
         # Postprocess the solutions
         Gout = last(SC, Aout, χ²out, Θout)
         #
-    # Sequential version
+        # Sequential version
     else
         #
         Aout, χ²out, Θout = run(MC, SE, SC)
@@ -292,8 +292,8 @@ function prun(
     p2::Dict{String,Vector{Any}},
     MC::StochSKMC,
     SE::StochSKElement,
-    SC::StochSKContext
-    )
+    SC::StochSKContext,
+)
     # Revise parameteric dicts
     rev_dict_b(p1)
     rev_dict_k(S, p2)
@@ -395,12 +395,7 @@ including the final spectral function and reproduced correlator.
 ### Returns
 * G -> Retarded Green's function, G(ω).
 """
-function last(
-    SC::StochSKContext,
-    Asum::Vector{F64},
-    χ²vec::Vector{F64},
-    Θvec::Vector{F64}
-    )
+function last(SC::StochSKContext, Asum::Vector{F64}, χ²vec::Vector{F64}, Θvec::Vector{F64})
     # By default, we should write the analytic continuation results
     # into the external files.
     _fwrite = get_b("fwrite")
@@ -582,7 +577,7 @@ function shuffle(MC::StochSKMC, SE::StochSKElement, SC::StochSKContext)
     max_bin_size = 100 # You can increase it to improve the accuracy
 
     # Announce counters
-    bin_χ²  = 0.0
+    bin_χ² = 0.0
     bin_acc = 0.0
     bin_try = 0.0
 
@@ -703,11 +698,7 @@ return a StochSKElement struct.
 
 See also: [`StochSKElement`](@ref).
 """
-function init_element(
-    S::StochSKSolver,
-    rng::AbstractRNG,
-    allow::Vector{I64}
-    )
+function init_element(S::StochSKSolver, rng::AbstractRNG, allow::Vector{I64})
     β = get_b("beta")
     wmax = get_b("wmax")
     wmin = get_b("wmin")
@@ -759,8 +750,8 @@ function init_context(
     allow::Vector{I64},
     grid::AbstractGrid,
     mesh::AbstractMesh,
-    fmesh::AbstractMesh
-    )
+    fmesh::AbstractMesh,
+)
     # Get parameters
     nmesh = get_b("nmesh")
     nwarm = get_k("nwarm")
@@ -799,7 +790,7 @@ function init_context(
     kernel = Diagonal(S) * V'
 
     # Get new (input) correlator
-    Gᵥ = U' *  (Gᵥ .* σ¹)
+    Gᵥ = U' * (Gᵥ .* σ¹)
 
     # Calculate reconstructed correlator using current field configuration
     Gᵧ = calc_correlator(SE, kernel)
@@ -808,8 +799,21 @@ function init_context(
     𝚾 = calc_goodness(Gᵧ, Gᵥ)
     χ², χ²min = 𝚾, 𝚾
 
-    return StochSKContext(Gᵥ, Gᵧ, σ¹, allow, grid, mesh, kernel, Aout,
-                        χ², χ²min, χ²vec, Θ, Θvec)
+    return StochSKContext(
+        Gᵥ,
+        Gᵧ,
+        σ¹,
+        allow,
+        grid,
+        mesh,
+        kernel,
+        Aout,
+        χ²,
+        χ²min,
+        χ²vec,
+        Θ,
+        Θvec,
+    )
 end
 
 """
@@ -924,7 +928,7 @@ function calc_theta(len::I64, SC::StochSKContext)
         #
         fit_pos = 2.5
         Θ_opt = a - fit_pos / b
-        c = argmin( abs.( log10.(SC.Θvec[1:c]) .- Θ_opt ) )
+        c = argmin(abs.(log10.(SC.Θvec[1:c]) .- Θ_opt))
     end
 
     return c
@@ -1021,7 +1025,7 @@ function try_move_s(MC::StochSKMC, SE::StochSKElement, SC::StochSKContext)
                 pnext = pcurr - δW
             end
             #
-            pnext < 1     && (pnext = pnext + nfine)
+            pnext < 1 && (pnext = pnext + nfine)
             pnext > nfine && (pnext = pnext - nfine)
         else
             pnext = rand(MC.rng, 1:nfine)
@@ -1038,7 +1042,7 @@ function try_move_s(MC::StochSKMC, SE::StochSKElement, SC::StochSKContext)
         @. ΔG = Gₙ - SC.Gᵥ
         χ²new = dot(ΔG, ΔG)
         #
-        prob = exp( 0.5 * (SC.χ² - χ²new) / SC.Θ )
+        prob = exp(0.5 * (SC.χ² - χ²new) / SC.Θ)
 
         # Important sampling, if true, the δ function is shifted and the
         # corresponding objects are updated.
@@ -1113,9 +1117,9 @@ function try_move_p(MC::StochSKMC, SE::StochSKElement, SC::StochSKContext)
                 pnext₂ = pcurr₂ + δW₂
             end
             #
-            pnext₁ < 1     && (pnext₁ = pnext₁ + nfine)
+            pnext₁ < 1 && (pnext₁ = pnext₁ + nfine)
             pnext₁ > nfine && (pnext₁ = pnext₁ - nfine)
-            pnext₂ < 1     && (pnext₂ = pnext₂ + nfine)
+            pnext₂ < 1 && (pnext₂ = pnext₂ + nfine)
             pnext₂ > nfine && (pnext₂ = pnext₂ - nfine)
         else
             pnext₁ = rand(MC.rng, 1:nfine)
@@ -1136,7 +1140,7 @@ function try_move_p(MC::StochSKMC, SE::StochSKElement, SC::StochSKContext)
         @. ΔG = Gₙ - SC.Gᵥ
         χ²new = dot(ΔG, ΔG)
         #
-        prob = exp( 0.5 * (SC.χ² - χ²new) / SC.Θ )
+        prob = exp(0.5 * (SC.χ² - χ²new) / SC.Θ)
 
         # Important sampling, if true, the δ functions are shifted and the
         # corresponding objects are updated.
@@ -1224,13 +1228,13 @@ function try_move_q(MC::StochSKMC, SE::StochSKElement, SC::StochSKContext)
                 pnext₄ = pcurr₄ + δW₄
             end
             #
-            pnext₁ < 1     && (pnext₁ = pnext₁ + nfine)
+            pnext₁ < 1 && (pnext₁ = pnext₁ + nfine)
             pnext₁ > nfine && (pnext₁ = pnext₁ - nfine)
-            pnext₂ < 1     && (pnext₂ = pnext₂ + nfine)
+            pnext₂ < 1 && (pnext₂ = pnext₂ + nfine)
             pnext₂ > nfine && (pnext₂ = pnext₂ - nfine)
-            pnext₃ < 1     && (pnext₃ = pnext₃ + nfine)
+            pnext₃ < 1 && (pnext₃ = pnext₃ + nfine)
             pnext₃ > nfine && (pnext₃ = pnext₃ - nfine)
-            pnext₄ < 1     && (pnext₄ = pnext₄ + nfine)
+            pnext₄ < 1 && (pnext₄ = pnext₄ + nfine)
             pnext₄ > nfine && (pnext₄ = pnext₄ - nfine)
         else
             pnext₁ = rand(MC.rng, 1:nfine)
@@ -1255,14 +1259,13 @@ function try_move_q(MC::StochSKMC, SE::StochSKElement, SC::StochSKContext)
         Knext₄ = view(SC.kernel, :, pnext₄)
         Kcurr₄ = view(SC.kernel, :, pcurr₄)
         #
-        @. Gₙ = SC.Gᵧ + SE.A * ( Knext₁ - Kcurr₁ +
-                                 Knext₂ - Kcurr₂ +
-                                 Knext₃ - Kcurr₃ +
-                                 Knext₄ - Kcurr₄ )
+        @. Gₙ =
+            SC.Gᵧ +
+            SE.A * (Knext₁ - Kcurr₁ + Knext₂ - Kcurr₂ + Knext₃ - Kcurr₃ + Knext₄ - Kcurr₄)
         @. ΔG = Gₙ - SC.Gᵥ
         χ²new = dot(ΔG, ΔG)
         #
-        prob = exp( 0.5 * (SC.χ² - χ²new) / SC.Θ )
+        prob = exp(0.5 * (SC.χ² - χ²new) / SC.Θ)
 
         # Important sampling, if true, the δ functions are shifted and the
         # corresponding objects are updated.

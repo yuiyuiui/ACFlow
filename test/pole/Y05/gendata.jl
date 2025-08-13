@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Random
 using Printf
@@ -10,23 +10,23 @@ using ACFlow
 wmin = -5.0  # Left boundary
 wmax = +5.0  # Right boundary
 nmesh = 2001 # Number of real-frequency points
-niw  = 10    # Number of Matsubara frequencies
+niw = 10    # Number of Matsubara frequencies
 beta = 20.0  # Inverse temperature
-ϵ₁   = 4.00  # Parameters for δ-like peaks
-ϵ₂   = -4.0
-ϵ₃   = 1.00
-ϵ₄   = -1.0
-A₁   = 0.50
-A₂   =-0.50
-A₃   = 0.50
-A₄   =-0.50
-η    = 1e-2
+ϵ₁ = 4.00  # Parameters for δ-like peaks
+ϵ₂ = -4.0
+ϵ₃ = 1.00
+ϵ₄ = -1.0
+A₁ = 0.50
+A₂ = -0.50
+A₃ = 0.50
+A₄ = -0.50
+η = 1e-2
 
 # Real frequency mesh
 ω = collect(LinRange(wmin, wmax, nmesh))
 
 # Matsubara frequency mesh
-iωₙ = π / beta * (2.0 * collect(0:niw-1) .+ 0.0)
+iωₙ = π / beta * (2.0 * collect(0:(niw-1)) .+ 0.0)
 
 # Noise
 seed = rand(1:100000000)
@@ -43,7 +43,8 @@ for i in eachindex(giw)
         A₁ / (iωₙ[i] * im - ϵ₁) +
         A₂ / (iωₙ[i] * im - ϵ₂) +
         A₃ / (iωₙ[i] * im - ϵ₃) +
-        A₄ / (iωₙ[i] * im - ϵ₄) + noise[i]
+        A₄ / (iωₙ[i] * im - ϵ₄) +
+        noise[i]
     )
 end
 #

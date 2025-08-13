@@ -11,7 +11,7 @@ function find_peaks(v, minipeak)
     return res
 end
 
-function find_peaks(mesh, v, minipeak; wind=0.01)
+function find_peaks(mesh, v, minipeak; wind = 0.01)
     @assert length(mesh) == length(v)
     n = length(mesh)
     idx = findall(x -> x > minipeak, v)
@@ -46,7 +46,7 @@ function find_peaks(mesh, v, minipeak; wind=0.01)
 end
 
 
-function integral(f::Function, a::T, b::T; h::T=T(1e-4)) where {T<:Real}
+function integral(f::Function, a::T, b::T; h::T = T(1e-4)) where {T<:Real}
     n_raw = floor((b - a) / h)
     n = Int(n_raw)
     if isodd(n)
@@ -62,7 +62,7 @@ function integral(f::Function, a::T, b::T; h::T=T(1e-4)) where {T<:Real}
     fb = f(a + h * T(n))
     acc = fa + fb
 
-    @inbounds for i in 1:(n-1)
+    @inbounds for i = 1:(n-1)
         x = a + h * T(i)
         coeff = isodd(i) ? T(4) : T(2)
         acc += coeff * f(x)
@@ -72,14 +72,16 @@ function integral(f::Function, a::T, b::T; h::T=T(1e-4)) where {T<:Real}
 end
 
 # construct combanition of gauss waves
-function continous_spectral_density(μ::Vector{T},
+function continous_spectral_density(
+    μ::Vector{T},
     σ::Vector{T},
-    amplitude::Vector{T}) where {T<:Real}
+    amplitude::Vector{T},
+) where {T<:Real}
     @assert length(μ) == length(σ) == length(amplitude)
     n = length(μ)
     function y(x)
         res = T(0)
-        for i in 1:n
+        for i = 1:n
             res += amplitude[i] * exp(-(x - μ[i])^2 / (2 * σ[i]^2))
         end
         return res
@@ -88,59 +90,63 @@ function continous_spectral_density(μ::Vector{T},
 end
 
 # generate values of G(iw_n)
-function generate_GFV_cont(β::T,
+function generate_GFV_cont(
+    β::T,
     N::Int,
     A::Function;
-    int_low::T=(-T(20)),
-    int_up::T=T(20),
-    noise::T=T(0),) where {T<:Real}
+    int_low::T = (-T(20)),
+    int_up::T = T(20),
+    noise::T = T(0),
+) where {T<:Real}
     grid = (collect(0:(N-1)) .+ 1 // 2) * T(2π) / β
     n = length(grid)
     res = zeros(Complex{T}, n)
-    for i in 1:n
+    for i = 1:n
         res[i] = integral(x -> A(x) / (im * grid[i] - x), int_low, int_up)
     end
-    for i in 1:n
+    for i = 1:n
         res[i] += noise * randn(T) * res[i] * exp(T(2π) * im * rand(T))
     end
     return res
 end
 
-function generate_GFV_delta(β::T,
+function generate_GFV_delta(
+    β::T,
     N::Int,
     poles::Vector{T},
     γ_vec::Vector{T};
-    noise::T=T(0),) where {T<:Real}
+    noise::T = T(0),
+) where {T<:Real}
     @assert length(poles) == length(γ_vec)
     wn = (collect(0:(N-1)) .+ 1 // 2) * T(2π) / β
     res = zeros(Complex{T}, N)
-    for i in 1:N
-        for j in 1:length(poles)
+    for i = 1:N
+        for j = 1:length(poles)
             res[i] += γ_vec[j] / (im * wn[i] - poles[j])
         end
     end
-    for i in 1:N
+    for i = 1:N
         res[i] += noise * randn(T) * res[i] * exp(T(2π) * im * rand(T))
     end
     return res
 end
 
 function ssk_dfcfg_cont(;
-    β=10.0,
-    N=20,
-    seed=6,
-    μ=[0.5, -2.5],
-    σ=[0.2, 0.8],
-    peak=[1.0, 0.3],
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    μ = [0.5, -2.5],
+    σ = [0.2, 0.8],
+    peak = [1.0, 0.3],
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     A = continous_spectral_density(μ, σ, peak)
     # opr = collect(range(-opb, opb, opn))
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_cont(β, N, A; noise=noise)
+    GFV = generate_GFV_cont(β, N, A; noise = noise)
 
 
     B = Dict{String,Any}(
@@ -170,20 +176,20 @@ function ssk_dfcfg_cont(;
 end
 
 function ssk_dfcfg_delta(;
-    β=10.0,
-    N=20,
-    seed=6,
-    poles_num=2,
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    poles_num = 2,
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
     γ = ones(poles_num) ./ poles_num
     # opr = collect(range(-opb, opb, opn))
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+    GFV = generate_GFV_delta(β, N, poles, γ; noise = noise)
 
 
     B = Dict{String,Any}(
@@ -213,21 +219,21 @@ function ssk_dfcfg_delta(;
 end
 
 function spx_dfcfg_cont(;
-    β=10.0,
-    N=20,
-    seed=6,
-    μ=[0.5, -2.5],
-    σ=[0.2, 0.8],
-    peak=[1.0, 0.3],
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    μ = [0.5, -2.5],
+    σ = [0.2, 0.8],
+    peak = [1.0, 0.3],
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     A = continous_spectral_density(μ, σ, peak)
     # opr = collect(range(-opb, opb, opn))
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_cont(β, N, A; noise=noise)
+    GFV = generate_GFV_cont(β, N, A; noise = noise)
 
 
     B = Dict{String,Any}(
@@ -258,19 +264,19 @@ end
 
 
 function spx_dfcfg_delta(;
-    β=10.0,
-    N=20,
-    seed=6,
-    poles_num=2,
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    poles_num = 2,
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
     γ = ones(poles_num) ./ poles_num
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+    GFV = generate_GFV_delta(β, N, poles, γ; noise = noise)
 
     B = Dict{String,Any}(
         "solver" => "StochPX",  # Choose MaxEnt solver
@@ -302,21 +308,21 @@ end
 
 
 function sac_dfcfg_cont(;
-    β=10.0,
-    N=20,
-    seed=6,
-    μ=[0.5, -2.5],
-    σ=[0.2, 0.8],
-    peak=[1.0, 0.3],
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    μ = [0.5, -2.5],
+    σ = [0.2, 0.8],
+    peak = [1.0, 0.3],
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     A = continous_spectral_density(μ, σ, peak)
     # opr = collect(range(-opb, opb, opn))
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_cont(β, N, A; noise=noise)
+    GFV = generate_GFV_cont(β, N, A; noise = noise)
 
 
     B = Dict{String,Any}(
@@ -347,19 +353,19 @@ end
 
 
 function sac_dfcfg_delta(;
-    β=10.0,
-    N=20,
-    seed=6,
-    poles_num=2,
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    poles_num = 2,
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
     γ = ones(poles_num) ./ poles_num
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+    GFV = generate_GFV_delta(β, N, poles, γ; noise = noise)
 
     B = Dict{String,Any}(
         "solver" => "StochAC",  # Choose MaxEnt solver
@@ -389,21 +395,21 @@ end
 
 
 function som_dfcfg_cont(;
-    β=10.0,
-    N=20,
-    seed=6,
-    μ=[0.5, -2.5],
-    σ=[0.2, 0.8],
-    peak=[1.0, 0.3],
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    μ = [0.5, -2.5],
+    σ = [0.2, 0.8],
+    peak = [1.0, 0.3],
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     A = continous_spectral_density(μ, σ, peak)
     # opr = collect(range(-opb, opb, opn))
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_cont(β, N, A; noise=noise)
+    GFV = generate_GFV_cont(β, N, A; noise = noise)
 
 
     B = Dict{String,Any}(
@@ -432,19 +438,19 @@ end
 
 
 function som_dfcfg_delta(;
-    β=10.0,
-    N=20,
-    seed=6,
-    poles_num=2,
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    poles_num = 2,
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
     γ = ones(poles_num) ./ poles_num
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+    GFV = generate_GFV_delta(β, N, poles, γ; noise = noise)
 
     B = Dict{String,Any}(
         "solver" => "StochOM",  # Choose MaxEnt solver
@@ -471,21 +477,21 @@ function som_dfcfg_delta(;
 end
 
 function nac_dfcfg_cont(;
-    β=10.0,
-    N=20,
-    seed=6,
-    μ=[0.5, -2.5],
-    σ=[0.2, 0.8],
-    peak=[1.0, 0.3],
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    μ = [0.5, -2.5],
+    σ = [0.2, 0.8],
+    peak = [1.0, 0.3],
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     A = continous_spectral_density(μ, σ, peak)
     # opr = collect(range(-opb, opb, opn))
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_cont(β, N, A; noise=noise)
+    GFV = generate_GFV_cont(β, N, A; noise = noise)
 
 
     B = Dict{String,Any}(
@@ -511,19 +517,19 @@ function nac_dfcfg_cont(;
 end
 
 function nac_dfcfg_delta(;
-    β=10.0,
-    N=20,
-    seed=6,
-    poles_num=2,
-    opb=5.0,
-    opn=801,
-    noise=0.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    poles_num = 2,
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
 )
     Random.seed!(seed)
     poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
     γ = ones(poles_num) ./ poles_num
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+    GFV = generate_GFV_delta(β, N, poles, γ; noise = noise)
 
     B = Dict{String,Any}(
         "solver" => "NevanAC",  # Choose MaxEnt solver
@@ -542,7 +548,7 @@ function nac_dfcfg_delta(;
         "alpha" => 1e-4,
         "eta" => 1e-2,
     )
-   
+
     setup_param(B, S)
 
     return wn, GFV, (poles, γ)
@@ -550,24 +556,24 @@ end
 
 
 function maxent_dfcfg_cont(;
-    β=10.0,
-    N=20,
-    seed=6,
-    μ=[0.5, -2.5],
-    σ=[0.2, 0.8],
-    peak=[1.0, 0.3],
-    opb=5.0,
-    opn=801,
-    noise=0.0,
-    method="chi2kink",
-    stype="sj",
-    blur=-1.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    μ = [0.5, -2.5],
+    σ = [0.2, 0.8],
+    peak = [1.0, 0.3],
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
+    method = "chi2kink",
+    stype = "sj",
+    blur = -1.0,
 )
     Random.seed!(seed)
     A = continous_spectral_density(μ, σ, peak)
     # opr = collect(range(-opb, opb, opn))
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_cont(β, N, A; noise=noise)
+    GFV = generate_GFV_cont(β, N, A; noise = noise)
 
 
     B = Dict{String,Any}(
@@ -587,7 +593,7 @@ function maxent_dfcfg_cont(;
         "nalph" => 12,
         "alpha" => 1e9,
         "ratio" => 10.0,
-        "blur" => blur
+        "blur" => blur,
     )
     setup_param(B, S)
     return wn, GFV, A
@@ -595,22 +601,22 @@ end
 
 
 function maxent_dfcfg_delta(;
-    β=10.0,
-    N=20,
-    seed=6,
-    poles_num=2,
-    opb=5.0,
-    opn=801,
-    noise=0.0,
-    method="chi2kink",
-    stype="sj",
-    blur=-1.0,
+    β = 10.0,
+    N = 20,
+    seed = 6,
+    poles_num = 2,
+    opb = 5.0,
+    opn = 801,
+    noise = 0.0,
+    method = "chi2kink",
+    stype = "sj",
+    blur = -1.0,
 )
     Random.seed!(seed)
     poles = collect(1:poles_num) .+ 0.5 * rand(poles_num)
     γ = ones(poles_num) ./ poles_num
     wn = (collect(0:(N-1)) .+ 0.5) * 2π / β
-    GFV = generate_GFV_delta(β, N, poles, γ; noise=noise)
+    GFV = generate_GFV_delta(β, N, poles, γ; noise = noise)
 
 
     B = Dict{String,Any}(
@@ -630,9 +636,8 @@ function maxent_dfcfg_delta(;
         "nalph" => 12,
         "alpha" => 1e9,
         "ratio" => 10.0,
-        "blur" => blur
+        "blur" => blur,
     )
     setup_param(B, S)
     return wn, GFV, (poles, γ)
 end
-

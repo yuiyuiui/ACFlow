@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Random
 using Printf
@@ -12,18 +12,18 @@ wmax = +8.0  # Right boundary
 nmesh = 2001 # Number of real-frequency points
 ntau = 501   # Number of imaginary time points
 beta = 5.00  # Inverse temperature
-ϵ₁   = 1.00  # Parameters for gaussian peaks
-ϵ₂   = -1.0
-ϵ₃   = 6.00
-ϵ₄   = -6.0
-A₁   = 1.00
-A₂   = 1.00
-A₃   = 0.20
-A₄   = 0.20
-Γ₁   = 1.00
-Γ₂   = 1.00
-Γ₃   = 0.50
-Γ₄   = 0.50
+ϵ₁ = 1.00  # Parameters for gaussian peaks
+ϵ₂ = -1.0
+ϵ₃ = 6.00
+ϵ₄ = -6.0
+A₁ = 1.00
+A₂ = 1.00
+A₃ = 0.20
+A₄ = 0.20
+Γ₁ = 1.00
+Γ₂ = 1.00
+Γ₃ = 0.50
+Γ₄ = 0.50
 
 # Real frequency mesh
 rmesh = collect(LinRange(wmin, wmax, nmesh))
@@ -31,7 +31,7 @@ rmesh = collect(LinRange(wmin, wmax, nmesh))
 # Spectral function
 image = similar(rmesh)
 #
-@. image  = A₁ * exp(-(rmesh - ϵ₁) ^ 2.0 / (2.0 * Γ₁ ^ 2.0)) / (sqrt(2.0 * π) * Γ₁)
+@. image = A₁ * exp(-(rmesh - ϵ₁) ^ 2.0 / (2.0 * Γ₁ ^ 2.0)) / (sqrt(2.0 * π) * Γ₁)
 @. image -= A₂ * exp(-(rmesh - ϵ₂) ^ 2.0 / (2.0 * Γ₂ ^ 2.0)) / (sqrt(2.0 * π) * Γ₂)
 @. image += A₃ * exp(-(rmesh - ϵ₃) ^ 2.0 / (2.0 * Γ₃ ^ 2.0)) / (sqrt(2.0 * π) * Γ₃)
 @. image -= A₄ * exp(-(rmesh - ϵ₄) ^ 2.0 / (2.0 * Γ₄ ^ 2.0)) / (sqrt(2.0 * π) * Γ₄)
@@ -72,7 +72,6 @@ end
 # Write spectral function
 open("image.data", "w") do fout
     for i in eachindex(image)
-        @printf(fout, "%20.16f %20.16f %20.16f\n",
-            rmesh[i], image[i], rmesh[i] * image[i])
+        @printf(fout, "%20.16f %20.16f %20.16f\n", rmesh[i], image[i], rmesh[i] * image[i])
     end
 end

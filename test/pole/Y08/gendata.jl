@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Random
 using Printf
@@ -16,26 +16,26 @@ using ACFlow
 wmin = +0.0  # Left boundary
 wmax = +2.5  # Right boundary
 nmesh = 501  # Number of real-frequency points
-niw  = 20    # Number of Matsubara frequencies
+niw = 20    # Number of Matsubara frequencies
 beta = 50.0  # Inverse temperature
-nkx  = 50    # Number of k-points along the x axis
-nky  = 50    # Number of k-points along the y axis
-t    = 0.25  # Hopping parameter
+nkx = 50    # Number of k-points along the x axis
+nky = 50    # Number of k-points along the y axis
+t = 0.25  # Hopping parameter
 mune = -0.5  # Chemical potential
-eta  = 0.05  # η
+eta = 0.05  # η
 
 # Fermi distribution
 function fermi(e)
-    return 1.0 / ( exp((e - mune) * beta) + 1.0 )
+    return 1.0 / (exp((e - mune) * beta) + 1.0)
 end
 
 # Define high-symmetry path: Γ - X - M - Γ
 function calc_kpath()
-    KGX = [(i,0) for i = 0:nkx]    # Γ - X
-    KXM = [(nkx,i) for i = 0:nky]  # X - M
-    KMG = [(i,i) for i = nkx:-1:0] # M - Γ
+    KGX = [(i, 0) for i = 0:nkx]    # Γ - X
+    KXM = [(nkx, i) for i = 0:nky]  # X - M
+    KMG = [(i, i) for i = nkx:-1:0] # M - Γ
     KPATH = union(KGX, KXM, KMG)
-    push!(KPATH, (0,0)) # Add the final Γ points
+    push!(KPATH, (0, 0)) # Add the final Γ points
     return KPATH
 end
 
@@ -43,7 +43,7 @@ end
 function calc_ek(ikx, iky)
     kx = ikx * π / nkx
     ky = iky * π / nky
-    ek = -2.0 * t * ( cos(kx) + cos(ky) )
+    ek = -2.0 * t * (cos(kx) + cos(ky))
     return ek
 end
 
@@ -53,8 +53,8 @@ function calc_ksum(iqx, iqy, w, ek)
     r = zeros(C64, length(w))
 
     # Go through the brillouin zone
-    for ipx = -nkx:nkx
-        for ipy = -nky:nky
+    for ipx = (-nkx):nkx
+        for ipy = (-nky):nky
             # Increase the counter
             k = k + 1
 
@@ -78,8 +78,8 @@ function calc_ksum(iqx, iqy, w, ek)
             end
 
             # Evaluate the Lindhard function
-            ep = ek[ipx+nkx+1,ipy+nky+1]
-            epq = ek[ipqx+nkx+1,ipqy+nky+1]
+            ep = ek[ipx+nkx+1, ipy+nky+1]
+            epq = ek[ipqx+nkx+1, ipqy+nky+1]
             f₁ = fermi(ep) - fermi(epq)
             f₂ = ep - epq
             #
@@ -93,7 +93,7 @@ end
 rmesh = collect(LinRange(wmin, wmax, nmesh))
 
 # Matsubara frequency mesh
-iωₙ = π / beta * (2.0 * collect(0:niw-1) .+ 0.0)
+iωₙ = π / beta * (2.0 * collect(0:(niw-1)) .+ 0.0)
 
 # Noise
 seed = rand(1:100000000)
@@ -108,9 +108,9 @@ KPATH = calc_kpath()
 
 # Precompute band dispersion
 ek = zeros(F64, 2 * nkx + 1, 2 * nky + 1)
-for ipx = -nkx:nkx
-    for ipy = -nky:nky
-        ek[ipx+nkx+1,ipy+nky+1] = calc_ek(ipx,ipy)
+for ipx = (-nkx):nkx
+    for ipy = (-nky):nky
+        ek[ipx+nkx+1, ipy+nky+1] = calc_ek(ipx, ipy)
     end
 end
 
@@ -125,18 +125,18 @@ for ik in eachindex(KPATH)
 
     # For real frequency data
     w = @. rmesh + im * eta
-    chir[ik,:] = calc_ksum(iqx, iqy, w, ek)
+    chir[ik, :] = calc_ksum(iqx, iqy, w, ek)
 
     # For imaginary frequency data
     w = iωₙ * im .+ 1e-10 # Add a small real part to avoid NaN at iωₙ = 0
-    chiw[ik,:] = calc_ksum(iqx, iqy, w, ek) + noise
+    chiw[ik, :] = calc_ksum(iqx, iqy, w, ek) + noise
 end
 
 # Write the Lindhard function at real frequency
 open("chir.data", "w") do fout
     for k in eachindex(KPATH)
         for i in eachindex(rmesh)
-            z = chir[k,i]
+            z = chir[k, i]
             @printf(fout, "%5i %20.16f %20.16f %20.16f\n", k, rmesh[i], real(z), imag(z))
         end
     end
@@ -146,7 +146,7 @@ end
 open("chiw.data", "w") do fout
     for k in eachindex(KPATH)
         for i in eachindex(iωₙ)
-            z = chiw[k,i]
+            z = chiw[k, i]
             @printf(fout, "%5i %20.16f %20.16f %20.16f\n", k, iωₙ[i], real(z), imag(z))
         end
     end

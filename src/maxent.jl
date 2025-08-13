@@ -29,17 +29,17 @@ Mutable struct. It is used within the MaxEnt solver only.
 * Bₘ     -> Precomputed array.
 """
 mutable struct MaxEntContext
-    Gᵥ     :: Vector{F64}
-    σ²     :: Vector{F64}
-    grid   :: AbstractGrid
-    mesh   :: AbstractMesh
-    model  :: Vector{F64}
-    kernel :: Array{F64,2}
-    hess   :: Array{F64,2}
-    Vₛ     :: Array{F64,2}
-    W₂     :: Array{F64,2}
-    W₃     :: Array{F64,3}
-    Bₘ     :: Vector{F64}
+    Gᵥ::Vector{F64}
+    σ²::Vector{F64}
+    grid::AbstractGrid
+    mesh::AbstractMesh
+    model::Vector{F64}
+    kernel::Array{F64,2}
+    hess::Array{F64,2}
+    Vₛ::Array{F64,2}
+    W₂::Array{F64,2}
+    W₃::Array{F64,3}
+    Bₘ::Vector{F64}
 end
 
 #=
@@ -121,8 +121,7 @@ function init(S::MaxEntSolver, rd::RawData)
     Vₛ, W₂, W₃, Bₘ, hess = precompute(Gᵥ, σ², mesh, model, kernel)
     println("Precompute key coefficients")
 
-    return MaxEntContext(Gᵥ, σ², grid, mesh, model,
-                         kernel, hess, Vₛ, W₂, W₃, Bₘ)
+    return MaxEntContext(Gᵥ, σ², grid, mesh, model, kernel, hess, Vₛ, W₂, W₃, Bₘ)
 end
 
 """
@@ -152,20 +151,20 @@ function run(mec::MaxEntContext)
 
     @cswitch method begin
         @case "historic"
-            return historic(mec)
-            break
+        return historic(mec)
+        break
 
         @case "classic"
-            return classic(mec)
-            break
+        return classic(mec)
+        break
 
         @case "bryan"
-            return bryan(mec)
-            break
+        return bryan(mec)
+        break
 
         @case "chi2kink"
-            return chi2kink(mec)
-            break
+        return chi2kink(mec)
+        break
     end
 end
 
@@ -409,10 +408,10 @@ function bryan(mec::MaxEntContext)
     A_opt = zeros(F64, nmesh)
     spectra = zeros(F64, nmesh, nprob)
     for i = 1:nprob
-        spectra[:,i] = A_vec[i] * p_vec[i]
+        spectra[:, i] = A_vec[i] * p_vec[i]
     end
     for j = 1:nmesh
-        A_opt[j] = -trapz(α_vec, spectra[j,:])
+        A_opt[j] = -trapz(α_vec, spectra[j, :])
     end
 
     sol = Dict(:A => A_opt)
@@ -482,6 +481,7 @@ function chi2kink(mec::MaxEntContext)
             break
         end
     end
+    @show α_vec
 
     good = isfinite.(χ_vec)
     guess = [0.0, 5.0, 2.0, 0.0]
@@ -494,7 +494,7 @@ function chi2kink(mec::MaxEntContext)
     # lead to overfitting, which should be avoided.
     fit_pos = 2.5
     α_opt = c - fit_pos / d
-    close = argmin( abs.( log10.(α_vec) .- α_opt ) )
+    close = argmin(abs.(log10.(α_vec) .- α_opt))
     u_vec = s_vec[close][:u]
     α_opt = 10.0 ^ α_opt
 
@@ -535,12 +535,7 @@ the optimization, e.g. spectral function, χ² deviation.
 ### Returns
 * dict -> A dictionary, the solution to analytic continuation problem.
 """
-function optimizer(
-    mec::MaxEntContext,
-    α::F64,
-    us::Vector{F64},
-    use_bayes::Bool
-    )
+function optimizer(mec::MaxEntContext, α::F64, us::Vector{F64}, use_bayes::Bool)
     blur = get_m("blur")
     offdiag = get_b("offdiag")
 
@@ -677,8 +672,8 @@ function precompute(
     σ²::Vector{F64},
     am::AbstractMesh,
     D::Vector{F64},
-    K::Matrix{F64}
-    )
+    K::Matrix{F64},
+)
     # Create singular value space
     U, V, S = make_singular_space(K)
 
@@ -696,16 +691,16 @@ function precompute(
     Δ = am.weight
 
     # Compute Wₘₗ
-    @einsum W₂[m,l] = σ²[k] * U[k,m] * S[m] * U[k,n] * S[n] * V[l,n] * Δ[l] * D[l]
+    @einsum W₂[m, l] = σ²[k] * U[k, m] * S[m] * U[k, n] * S[n] * V[l, n] * Δ[l] * D[l]
 
     # Compute Wₘₗᵢ
-    @einsum W₃[m,k,l] = W₂[m,l] * V[l,k]
+    @einsum W₃[m, k, l] = W₂[m, l] * V[l, k]
 
     # Compute Bₘ
-    @einsum Bₘ[m] = S[m] * U[k,m] * σ²[k] * Gᵥ[k]
+    @einsum Bₘ[m] = S[m] * U[k, m] * σ²[k] * Gᵥ[k]
 
     # Compute the Hessian matrix
-    @einsum hess[i,j] = Δ[i] * Δ[j] * K[k,i] * K[k,j] * σ²[k]
+    @einsum hess[i, j] = Δ[i] * Δ[j] * K[k, i] * K[k, j] * σ²[k]
 
     return V, W₂, W₃, Bₘ, hess
 end
@@ -786,12 +781,12 @@ function f_and_J(u::Vector{F64}, mec::MaxEntContext, α::F64)
         #
         for j = 1:n_svd
             for i = 1:n_svd
-                J[i,j] = J[i,j] + dot(mec.W₃[i,j,:], w)
+                J[i, j] = J[i, j] + dot(mec.W₃[i, j, :], w)
             end
         end
         #
         f = α * u + mec.W₂ * w - mec.Bₘ
-    # For Bayesian Reconstruction entropy
+        # For Bayesian Reconstruction entropy
     else
         w = mec.Vₛ * u
         w₁ = 1.0 ./ (1.0 .- mec.model .* w)
@@ -799,7 +794,7 @@ function f_and_J(u::Vector{F64}, mec::MaxEntContext, α::F64)
         #
         for j = 1:n_svd
             for i = 1:n_svd
-                J[i,j] = J[i,j] + dot(mec.W₃[i,j,:], w₂)
+                J[i, j] = J[i, j] + dot(mec.W₃[i, j, :], w₂)
             end
         end
         #
@@ -900,12 +895,12 @@ function f_and_J_od(u::Vector{F64}, mec::MaxEntContext, α::F64)
         #
         for j = 1:n_svd
             for i = 1:n_svd
-                J[i,j] = J[i,j] + dot(mec.W₃[i,j,:], a₂)
+                J[i, j] = J[i, j] + dot(mec.W₃[i, j, :], a₂)
             end
         end
         #
         f = α * u + mec.W₂ * a₁ - mec.Bₘ
-    # For Bayesian Reconstruction entropy
+        # For Bayesian Reconstruction entropy
     else
         w = mec.Vₛ * u
         #
@@ -916,7 +911,7 @@ function f_and_J_od(u::Vector{F64}, mec::MaxEntContext, α::F64)
         #
         for j = 1:n_svd
             for i = 1:n_svd
-                J[i,j] = J[i,j] + dot(mec.W₃[i,j,:], a₂)
+                J[i, j] = J[i, j] + dot(mec.W₃[i, j, :], a₂)
             end
         end
         #
@@ -972,7 +967,7 @@ function svd_to_real(mec::MaxEntContext, u::Vector{F64})
     if stype == "sj"
         w = exp.(mec.Vₛ * u)
         return mec.model .* w
-    # For Bayesian Reconstruction entropy
+        # For Bayesian Reconstruction entropy
     else
         w = mec.Vₛ * u
         return mec.model ./ (1.0 .- mec.model .* w)
@@ -1039,7 +1034,7 @@ function svd_to_real_od(mec::MaxEntContext, u::Vector{F64})
         w⁺ = w
         w⁻ = 1.0 ./ w
         return mec.model .* (w⁺ .- w⁻)
-    # For Bayesian Reconstruction entropy
+        # For Bayesian Reconstruction entropy
     else
         w = mec.Vₛ * u
         w⁺ = 1.0 ./ (1.0 .- mec.model .* w)
@@ -1118,7 +1113,7 @@ function calc_entropy(mec::MaxEntContext, A::Vector{F64}, u::Vector{F64})
     # For Shannon–Jaynes entropy
     if stype == "sj"
         f = A - mec.model - A .* (mec.Vₛ * u)
-    # For Bayesian Reconstruction entropy
+        # For Bayesian Reconstruction entropy
     else
         𝑅 = A ./ mec.model
         #
@@ -1157,7 +1152,7 @@ function calc_entropy_od(mec::MaxEntContext, A::Vector{F64})
         root = sqrt.(A .^ 2.0 + 4.0 .* mec.model .* mec.model)
         f = root - 2.0 .* mec.model
         f = f - A .* log.((root + A) ./ (2.0 .* mec.model))
-    # For Bayesian Reconstruction entropy
+        # For Bayesian Reconstruction entropy
     else
         root = sqrt.(A .^ 2.0 + mec.model .^ 2.0) + mec.model
         f = 2.0 .- (root ./ mec.model) + log.(root ./ (2.0 .* mec.model))
@@ -1353,13 +1348,7 @@ See above explanations.
 
 See also: [`calc_bayes_od`](@ref).
 """
-function calc_bayes(
-    mec::MaxEntContext,
-    A::Vector{F64},
-    S::F64,
-    χ²::F64,
-    α::F64
-    )
+function calc_bayes(mec::MaxEntContext, A::Vector{F64}, S::F64, χ²::F64, α::F64)
     stype = get_m("stype")
     mesh = mec.mesh
 
@@ -1410,13 +1399,7 @@ See above explanations.
 
 See also: [`calc_bayes`](@ref).
 """
-function calc_bayes_od(
-    mec::MaxEntContext,
-    A::Vector{F64},
-    S::F64,
-    χ²::F64,
-    α::F64
-    )
+function calc_bayes_od(mec::MaxEntContext, A::Vector{F64}, S::F64, χ²::F64, α::F64)
     stype = get_m("stype")
     mesh = mec.mesh
 

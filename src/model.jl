@@ -217,7 +217,7 @@ Try to build a Lorentzian model, which is then normalized. The argument
 See also: [`AbstractMesh`](@ref).
 """
 function build_lorentzian_model(am::AbstractMesh, Γ::F64)
-    model = (Γ / π) ./ ( Γ ^ 2.0 .+ (am.mesh) .^ 2.0 )
+    model = (Γ / π) ./ (Γ ^ 2.0 .+ (am.mesh) .^ 2.0)
     norm = dot(am.weight, model)
     model = model ./ norm
     return model
@@ -242,7 +242,7 @@ positive half-axis, and vice versa.
 See also: [`AbstractMesh`](@ref).
 """
 function build_1lorentzian_model(am::AbstractMesh, Γ::F64, s::F64)
-    model = (Γ / π) ./ ( Γ ^ 2.0 .+ (am.mesh - s) .^ 2.0 )
+    model = (Γ / π) ./ (Γ ^ 2.0 .+ (am.mesh - s) .^ 2.0)
     norm = dot(am.weight, model)
     model = model ./ norm
     return model
@@ -268,8 +268,8 @@ See also: [`AbstractMesh`](@ref).
 """
 function build_2lorentzians_model(am::AbstractMesh, Γ::F64, s₁::F64, s₂::F64)
     model = similar(am.mesh)
-    @. model = (Γ / π) / ( Γ ^ 2.0 + (am.mesh - s₁) ^ 2.0 )
-    @. model += (Γ / π) / ( Γ ^ 2.0 + (am.mesh - s₂) ^ 2.0 )
+    @. model = (Γ / π) / (Γ ^ 2.0 + (am.mesh - s₁) ^ 2.0)
+    @. model += (Γ / π) / (Γ ^ 2.0 + (am.mesh - s₂) ^ 2.0)
     norm = dot(am.weight, model)
     model = model ./ norm
     return model

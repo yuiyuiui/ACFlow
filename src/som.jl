@@ -24,9 +24,9 @@ algorithm to sample them and evaluate their contributions to the spectrum.
 * c -> Position of the box.
 """
 mutable struct Box
-    h :: F64
-    w :: F64
-    c :: F64
+    h::F64
+    w::F64
+    c::F64
 end
 
 """
@@ -42,10 +42,10 @@ be sampled by Monte Carlo sweeping procedure.
 * Δ -> Difference between reproduced and raw correlators.
 """
 mutable struct StochOMElement
-    C :: Vector{Box}
-    Λ :: Array{F64,2}
-    G :: Vector{F64}
-    Δ :: F64
+    C::Vector{Box}
+    Λ::Array{F64,2}
+    G::Vector{F64}
+    Δ::F64
 end
 
 """
@@ -63,13 +63,13 @@ Mutable struct. It is used within the StochOM solver only.
 * 𝕊ᵥ    -> It is used to interpolate the Λ functions.
 """
 mutable struct StochOMContext
-    Gᵥ   :: Vector{F64}
-    σ¹   :: Vector{F64}
-    grid :: AbstractGrid
-    mesh :: AbstractMesh
-    Cᵥ   :: Vector{Vector{Box}}
-    Δᵥ   :: Vector{F64}
-    𝕊ᵥ   :: Vector{CubicSplineInterpolation}
+    Gᵥ::Vector{F64}
+    σ¹::Vector{F64}
+    grid::AbstractGrid
+    mesh::AbstractMesh
+    Cᵥ::Vector{Vector{Box}}
+    Δᵥ::Vector{F64}
+    𝕊ᵥ::Vector{CubicSplineInterpolation}
 end
 
 #=
@@ -138,7 +138,7 @@ function solve(S::StochOMSolver, rd::RawData)
         # Postprocess the solutions
         Gout = last(SC, Aout)
         #
-    # Sequential version
+        # Sequential version
     else
         #
         Aout = run(MC, SC)
@@ -266,8 +266,8 @@ function prun(
     p1::Dict{String,Vector{Any}},
     p2::Dict{String,Vector{Any}},
     MC::StochOMMC,
-    SC::StochOMContext
-    )
+    SC::StochOMContext,
+)
     # Revise parameteric dicts
     rev_dict_b(p1)
     rev_dict_s(S, p2)
@@ -331,7 +331,7 @@ function average(SC::StochOMContext)
     fwrite = isa(_fwrite, Missing) || _fwrite ? true : false
 
     nmesh = get_b("nmesh")
-    ntry  = get_s("ntry")
+    ntry = get_s("ntry")
 
     # Calculate the median of SC.Δᵥ
     dev_ave = median(SC.Δᵥ)
@@ -461,96 +461,96 @@ function update(MC::StochOMMC, SE::StochOMElement, SC::StochOMContext)
 
         @cswitch update_type begin
             @case 1
-                if 1 ≤ length(ST.C) ≤ nbox - 1
-                    try_insert(MC, ST, SC, d1)
-                end
-                break
+            if 1 ≤ length(ST.C) ≤ nbox - 1
+                try_insert(MC, ST, SC, d1)
+            end
+            break
 
             @case 2
-                if length(ST.C) ≥ 2
-                    try_remove(MC, ST, SC, d1)
-                end
-                break
+            if length(ST.C) ≥ 2
+                try_remove(MC, ST, SC, d1)
+            end
+            break
 
             @case 3
-                if length(ST.C) ≥ 1
-                    try_shift(MC, ST, SC, d1)
-                end
-                break
+            if length(ST.C) ≥ 1
+                try_shift(MC, ST, SC, d1)
+            end
+            break
 
             @case 4
-                if length(ST.C) ≥ 1
-                    try_width(MC, ST, SC, d1)
-                end
-                break
+            if length(ST.C) ≥ 1
+                try_width(MC, ST, SC, d1)
+            end
+            break
 
             @case 5
-                if length(ST.C) ≥ 2
-                    try_height(MC, ST, SC, d1)
-                end
-                break
+            if length(ST.C) ≥ 2
+                try_height(MC, ST, SC, d1)
+            end
+            break
 
             @case 6
-                if 1 ≤ length(ST.C) ≤ nbox - 1
-                    try_split(MC, ST, SC, d1)
-                end
-                break
+            if 1 ≤ length(ST.C) ≤ nbox - 1
+                try_split(MC, ST, SC, d1)
+            end
+            break
 
             @case 7
-                if length(ST.C) ≥ 2
-                    try_merge(MC, ST, SC, d1)
-                end
-                break
+            if length(ST.C) ≥ 2
+                try_merge(MC, ST, SC, d1)
+            end
+            break
         end
 
     end
     #
     # The second stage
-    for _ = T1+1:Tmax
+    for _ = (T1+1):Tmax
         update_type = rand(MC.rng, 1:7)
 
         @cswitch update_type begin
             @case 1
-                if 1 ≤ length(ST.C) ≤ nbox - 1
-                    try_insert(MC, ST, SC, d2)
-                end
-                break
+            if 1 ≤ length(ST.C) ≤ nbox - 1
+                try_insert(MC, ST, SC, d2)
+            end
+            break
 
             @case 2
-                if length(ST.C) ≥ 2
-                    try_remove(MC, ST, SC, d2)
-                end
-                break
+            if length(ST.C) ≥ 2
+                try_remove(MC, ST, SC, d2)
+            end
+            break
 
             @case 3
-                if length(ST.C) ≥ 1
-                    try_shift(MC, ST, SC, d2)
-                end
-                break
+            if length(ST.C) ≥ 1
+                try_shift(MC, ST, SC, d2)
+            end
+            break
 
             @case 4
-                if length(ST.C) ≥ 1
-                    try_width(MC, ST, SC, d2)
-                end
-                break
+            if length(ST.C) ≥ 1
+                try_width(MC, ST, SC, d2)
+            end
+            break
 
             @case 5
-                if length(ST.C) ≥ 2
-                    try_height(MC, ST, SC, d2)
-                end
-                break
+            if length(ST.C) ≥ 2
+                try_height(MC, ST, SC, d2)
+            end
+            break
 
             @case 6
-                if 1 ≤ length(ST.C) ≤ nbox - 1
-                    try_split(MC, ST, SC, d2)
-                end
-                break
+            if 1 ≤ length(ST.C) ≤ nbox - 1
+                try_split(MC, ST, SC, d2)
+            end
+            break
 
             @case 7
-                if length(ST.C) ≥ 2
-                    try_merge(MC, ST, SC, d2)
-                end
-                break
+            if length(ST.C) ≥ 2
+                try_merge(MC, ST, SC, d2)
+            end
+            break
         end
     end
 
@@ -558,7 +558,7 @@ function update(MC::StochOMMC, SE::StochOMElement, SC::StochOMContext)
         SE.C = deepcopy(ST.C)
         SE.Λ .= ST.Λ
         SE.G .= ST.G
-        SE.Δ  = ST.Δ
+        SE.Δ = ST.Δ
     end
 end
 
@@ -678,7 +678,7 @@ function init_element(MC::StochOMMC, SC::StochOMContext)
         h = weight[k] / w
         R = Box(h, w, c)
         push!(C, R)
-        Λ[:,k] .= eval_lambda(R, SC.grid, SC.𝕊ᵥ)
+        Λ[:, k] .= eval_lambda(R, SC.grid, SC.𝕊ᵥ)
     end
     #
     # Calculate Green's function and relative error using boxes
@@ -755,14 +755,14 @@ function init_context(S::StochOMSolver, grid::AbstractGrid)
                 # Calculate the integral using trapz rule. Perhaps more
                 # precise algorithms should be used.
                 for i = 1:ngrid
-                    Λ[i,m] = trapz(cm, K[i,:])
+                    Λ[i, m] = trapz(cm, K[i, :])
                 end
             end
         end
 
         # Create CubicSplineInterpolation structs in time grid τ
         for i = 1:ngrid
-            𝕊ᵥ[i] = CubicSplineInterpolation(Λ[i,:], am.mesh)
+            𝕊ᵥ[i] = CubicSplineInterpolation(Λ[i, :], am.mesh)
         end
     end
 
@@ -971,8 +971,8 @@ See also: [`FermionicMatsubaraGrid`](@ref).
 function eval_lambda(
     r::Box,
     grid::FermionicMatsubaraGrid,
-    𝕊::Vector{<:AbstractInterpolation}
-    )
+    𝕊::Vector{<:AbstractInterpolation},
+)
     # Get left and right boundaries of the given box
     e₁ = r.c - 0.5 * r.w
     e₂ = r.c + 0.5 * r.w
@@ -1010,8 +1010,8 @@ See also: [`FermionicFragmentMatsubaraGrid`](@ref).
 function eval_lambda(
     r::Box,
     grid::FermionicFragmentMatsubaraGrid,
-    𝕊::Vector{<:AbstractInterpolation}
-    )
+    𝕊::Vector{<:AbstractInterpolation},
+)
     # Get left and right boundaries of the given box
     e₁ = r.c - 0.5 * r.w
     e₂ = r.c + 0.5 * r.w
@@ -1048,8 +1048,8 @@ See also: [`FermionicImaginaryTimeGrid`](@ref).
 function eval_lambda(
     r::Box,
     grid::FermionicImaginaryTimeGrid,
-    𝕊::Vector{<:AbstractInterpolation}
-    )
+    𝕊::Vector{<:AbstractInterpolation},
+)
     # Get left and right boundaries of the given box
     e₁ = r.c - 0.5 * r.w
     e₂ = r.c + 0.5 * r.w
@@ -1061,7 +1061,7 @@ function eval_lambda(
     # 𝕊ᵢ(e₂): integral boundary is from wmin to e₂
     # 𝕊ᵢ(e₁): integral boundary is from wmin to e₁
     for i = 1:ntime
-        Λ[i] = ( 𝕊[i](e₂) - 𝕊[i](e₁) ) * r.h
+        Λ[i] = (𝕊[i](e₂) - 𝕊[i](e₁)) * r.h
     end
 
     return Λ
@@ -1092,8 +1092,8 @@ See also: [`FermionicFragmentTimeGrid`](@ref).
 function eval_lambda(
     r::Box,
     grid::FermionicFragmentTimeGrid,
-    𝕊::Vector{<:AbstractInterpolation}
-    )
+    𝕊::Vector{<:AbstractInterpolation},
+)
     # Get left and right boundaries of the given box
     e₁ = r.c - 0.5 * r.w
     e₂ = r.c + 0.5 * r.w
@@ -1105,7 +1105,7 @@ function eval_lambda(
     # 𝕊ᵢ(e₂): integral boundary is from wmin to e₂
     # 𝕊ᵢ(e₁): integral boundary is from wmin to e₁
     for i = 1:ntime
-        Λ[i] = ( 𝕊[i](e₂) - 𝕊[i](e₁) ) * r.h
+        Λ[i] = (𝕊[i](e₂) - 𝕊[i](e₁)) * r.h
     end
 
     return Λ
@@ -1134,11 +1134,7 @@ Actually, 𝕊 is undefined here. See init_context().
 
 See also: [`BosonicMatsubaraGrid`](@ref).
 """
-function eval_lambda(
-    r::Box,
-    grid::BosonicMatsubaraGrid,
-    𝕊::Vector{<:AbstractInterpolation}
-    )
+function eval_lambda(r::Box, grid::BosonicMatsubaraGrid, 𝕊::Vector{<:AbstractInterpolation})
     # Get type of bosonic kernel
     ktype = get_b("ktype")
 
@@ -1148,7 +1144,7 @@ function eval_lambda(
 
     # Evaluate Λ
     if ktype == "bsymm"
-        Λ = @. atan( e₁ / grid.ω ) - atan( e₂ / grid.ω )
+        Λ = @. atan(e₁ / grid.ω) - atan(e₂ / grid.ω)
         Λ = -2.0 * r.h * (r.w .+ grid.ω .* Λ)
         return Λ
     else
@@ -1184,8 +1180,8 @@ See also: [`BosonicFragmentMatsubaraGrid`](@ref).
 function eval_lambda(
     r::Box,
     grid::BosonicFragmentMatsubaraGrid,
-    𝕊::Vector{<:AbstractInterpolation}
-    )
+    𝕊::Vector{<:AbstractInterpolation},
+)
     # Get type of bosonic kernel
     ktype = get_b("ktype")
 
@@ -1195,7 +1191,7 @@ function eval_lambda(
 
     # Evaluate Λ
     if ktype == "bsymm"
-        Λ = @. atan( e₁ / grid.ω ) - atan( e₂ / grid.ω )
+        Λ = @. atan(e₁ / grid.ω) - atan(e₂ / grid.ω)
         Λ = -2.0 * r.h * (r.w .+ grid.ω .* Λ)
         return Λ
     else
@@ -1230,8 +1226,8 @@ See also: [`BosonicImaginaryTimeGrid`](@ref).
 function eval_lambda(
     r::Box,
     grid::BosonicImaginaryTimeGrid,
-    𝕊::Vector{<:AbstractInterpolation}
-    )
+    𝕊::Vector{<:AbstractInterpolation},
+)
     # Get left and right boundaries of the given box
     e₁ = r.c - 0.5 * r.w
     e₂ = r.c + 0.5 * r.w
@@ -1243,7 +1239,7 @@ function eval_lambda(
     # 𝕊ᵢ(e₂): integral boundary is from wmin to e₂
     # 𝕊ᵢ(e₁): integral boundary is from wmin to e₁
     for i = 1:ntime
-        Λ[i] = ( 𝕊[i](e₂) - 𝕊[i](e₁) ) * r.h
+        Λ[i] = (𝕊[i](e₂) - 𝕊[i](e₁)) * r.h
     end
 
     return Λ
@@ -1274,8 +1270,8 @@ See also: [`BosonicFragmentTimeGrid`](@ref).
 function eval_lambda(
     r::Box,
     grid::BosonicFragmentTimeGrid,
-    𝕊::Vector{<:AbstractInterpolation}
-    )
+    𝕊::Vector{<:AbstractInterpolation},
+)
     # Get left and right boundaries of the given box
     e₁ = r.c - 0.5 * r.w
     e₂ = r.c + 0.5 * r.w
@@ -1287,7 +1283,7 @@ function eval_lambda(
     # 𝕊ᵢ(e₂): integral boundary is from wmin to e₂
     # 𝕊ᵢ(e₁): integral boundary is from wmin to e₁
     for i = 1:ntime
-        Λ[i] = ( 𝕊[i](e₂) - 𝕊[i](e₁) ) * r.h
+        Λ[i] = (𝕊[i](e₂) - 𝕊[i](e₁)) * r.h
     end
 
     return Λ
@@ -1308,7 +1304,7 @@ See above explanations.
 See also: [`calc_green`](@ref).
 """
 function calc_error(G::Vector{F64}, Gᵥ::Vector{F64}, σ¹::Vector{F64})
-    return sum( ( (G .- Gᵥ) .* σ¹ ) .^ 2.0 )
+    return sum(((G .- Gᵥ) .* σ¹) .^ 2.0)
 end
 
 """
@@ -1333,7 +1329,7 @@ function calc_green(Λ::Array{F64,2}, nk::I64)
     G = zeros(F64, ngrid)
     for k = 1:nk
         for g = 1:ngrid
-            G[g] = G[g] + Λ[g,k]
+            G[g] = G[g] + Λ[g, k]
         end
     end
 
@@ -1413,12 +1409,7 @@ Insert a new box into the field configuration.
 ### Returns
 N/A
 """
-function try_insert(
-    MC::StochOMMC,
-    SE::StochOMElement,
-    SC::StochOMContext,
-    dacc::F64
-    )
+function try_insert(MC::StochOMMC, SE::StochOMElement, SC::StochOMContext, dacc::F64)
     sbox = get_s("sbox")
     wbox = get_s("wbox")
     wmin = get_b("wmin")
@@ -1461,7 +1452,7 @@ function try_insert(
     Radd = Box(h, w, c)
 
     # Calculate update for Λ
-    G₁ = SE.Λ[:,t]
+    G₁ = SE.Λ[:, t]
     G₂ = eval_lambda(Rnew, SC.grid, SC.𝕊ᵥ)
     G₃ = eval_lambda(Radd, SC.grid, SC.𝕊ᵥ)
 
@@ -1479,8 +1470,8 @@ function try_insert(
         # Update Δ, G, and Λ.
         SE.Δ = Δ
         @. SE.G = SE.G - G₁ + G₂ + G₃
-        @. SE.Λ[:,t] = G₂
-        @. SE.Λ[:,csize+1] = G₃
+        @. SE.Λ[:, t] = G₂
+        @. SE.Λ[:, csize+1] = G₃
 
         # Update the counter
         MC.Macc[1] = MC.Macc[1] + 1
@@ -1509,12 +1500,7 @@ Remove an old box from the field configuration.
 ### Returns
 N/A
 """
-function try_remove(
-    MC::StochOMMC,
-    SE::StochOMElement,
-    SC::StochOMContext,
-    dacc::F64
-    )
+function try_remove(MC::StochOMMC, SE::StochOMElement, SC::StochOMContext, dacc::F64)
     csize = length(SE.C)
 
     # Choose two boxes randomly
@@ -1540,9 +1526,9 @@ function try_remove(
     R₂ₙ = Box(R₂.h + dx / R₂.w, R₂.w, R₂.c)
 
     # Calculate update for Λ
-    G₁ = SE.Λ[:,t₁]
-    G₂ = SE.Λ[:,t₂]
-    Gₑ = SE.Λ[:,csize]
+    G₁ = SE.Λ[:, t₁]
+    G₂ = SE.Λ[:, t₂]
+    Gₑ = SE.Λ[:, csize]
     G₂ₙ = eval_lambda(R₂ₙ, SC.grid, SC.𝕊ᵥ)
 
     # Calculate new Δ function, it is actually the error function.
@@ -1564,9 +1550,9 @@ function try_remove(
         # Update Δ, G, and Λ.
         SE.Δ = Δ
         @. SE.G = SE.G - G₁ - G₂ + G₂ₙ
-        @. SE.Λ[:,t₂] = G₂ₙ
+        @. SE.Λ[:, t₂] = G₂ₙ
         if t₁ < csize
-            @. SE.Λ[:,t₁] = Gₑ
+            @. SE.Λ[:, t₁] = Gₑ
         end
 
         # Update the counter
@@ -1596,12 +1582,7 @@ Change the position of given box in the field configuration.
 ### Returns
 N/A
 """
-function try_shift(
-    MC::StochOMMC,
-    SE::StochOMElement,
-    SC::StochOMContext,
-    dacc::F64
-    )
+function try_shift(MC::StochOMMC, SE::StochOMElement, SC::StochOMContext, dacc::F64)
     wmin = get_b("wmin")
     wmax = get_b("wmax")
     csize = length(SE.C)
@@ -1627,7 +1608,7 @@ function try_shift(
     Rₙ = Box(R.h, R.w, R.c + δc)
 
     # Calculate update for Λ
-    G₁ = SE.Λ[:,t]
+    G₁ = SE.Λ[:, t]
     G₂ = eval_lambda(Rₙ, SC.grid, SC.𝕊ᵥ)
 
     # Calculate new Δ function, it is actually the error function.
@@ -1641,7 +1622,7 @@ function try_shift(
         # Update Δ, G, and Λ.
         SE.Δ = Δ
         @. SE.G = SE.G - G₁ + G₂
-        @. SE.Λ[:,t] = G₂
+        @. SE.Λ[:, t] = G₂
 
         # Update the counter
         MC.Macc[3] = MC.Macc[3] + 1
@@ -1671,12 +1652,7 @@ that the box's area is kept.
 ### Returns
 N/A
 """
-function try_width(
-    MC::StochOMMC,
-    SE::StochOMElement,
-    SC::StochOMContext,
-    dacc::F64
-    )
+function try_width(MC::StochOMMC, SE::StochOMElement, SC::StochOMContext, dacc::F64)
     wbox = get_s("wbox")
     wmin = get_b("wmin")
     wmax = get_b("wmax")
@@ -1707,7 +1683,7 @@ function try_width(
     Rₙ = Box(h, w, c)
 
     # Calculate update for Λ
-    G₁ = SE.Λ[:,t]
+    G₁ = SE.Λ[:, t]
     G₂ = eval_lambda(Rₙ, SC.grid, SC.𝕊ᵥ)
 
     # Calculate new Δ function, it is actually the error function.
@@ -1721,7 +1697,7 @@ function try_width(
         # Update Δ, G, and Λ.
         SE.Δ = Δ
         @. SE.G = SE.G - G₁ + G₂
-        @. SE.Λ[:,t] = G₂
+        @. SE.Λ[:, t] = G₂
 
         # Update the counter
         MC.Macc[4] = MC.Macc[4] + 1
@@ -1750,13 +1726,8 @@ Change the heights of two given boxes in the field configuration.
 ### Returns
 N/A
 """
-function try_height(
-    MC::StochOMMC,
-    SE::StochOMElement,
-    SC::StochOMContext,
-    dacc::F64
-    )
-    sbox  = get_s("sbox")
+function try_height(MC::StochOMMC, SE::StochOMElement, SC::StochOMContext, dacc::F64)
+    sbox = get_s("sbox")
     csize = length(SE.C)
 
     # Choose two boxes randomly
@@ -1788,9 +1759,9 @@ function try_height(
     R₂ₙ = Box(R₂.h - dh * w₁ / w₂, R₂.w, R₂.c)
 
     # Calculate update for Λ
-    G₁A = SE.Λ[:,t₁]
+    G₁A = SE.Λ[:, t₁]
     G₁B = eval_lambda(R₁ₙ, SC.grid, SC.𝕊ᵥ)
-    G₂A = SE.Λ[:,t₂]
+    G₂A = SE.Λ[:, t₂]
     G₂B = eval_lambda(R₂ₙ, SC.grid, SC.𝕊ᵥ)
 
     # Calculate new Δ function, it is actually the error function.
@@ -1805,8 +1776,8 @@ function try_height(
         # Update Δ, G, and Λ.
         SE.Δ = Δ
         @. SE.G = SE.G - G₁A + G₁B - G₂A + G₂B
-        @. SE.Λ[:,t₁] = G₁B
-        @. SE.Λ[:,t₂] = G₂B
+        @. SE.Λ[:, t₁] = G₁B
+        @. SE.Λ[:, t₂] = G₂B
 
         # Update the counter
         MC.Macc[5] = MC.Macc[5] + 1
@@ -1835,12 +1806,7 @@ Split a given box into two boxes in the field configuration.
 ### Returns
 N/A
 """
-function try_split(
-    MC::StochOMMC,
-    SE::StochOMElement,
-    SC::StochOMContext,
-    dacc::F64
-    )
+function try_split(MC::StochOMMC, SE::StochOMElement, SC::StochOMContext, dacc::F64)
     wbox = get_s("wbox")
     sbox = get_s("sbox")
     wmin = get_b("wmin")
@@ -1891,7 +1857,7 @@ function try_split(
         R₃ = Box(h, w₂, c₂ + δc₂)
 
         # Calculate update for Λ
-        G₁ = SE.Λ[:,t]
+        G₁ = SE.Λ[:, t]
         G₂ = eval_lambda(R₂, SC.grid, SC.𝕊ᵥ)
         G₃ = eval_lambda(R₃, SC.grid, SC.𝕊ᵥ)
 
@@ -1907,8 +1873,8 @@ function try_split(
             # Update Δ, G, and Λ.
             SE.Δ = Δ
             @. SE.G = SE.G - G₁ + G₂ + G₃
-            @. SE.Λ[:,t] = G₂
-            @. SE.Λ[:,csize+1] = G₃
+            @. SE.Λ[:, t] = G₂
+            @. SE.Λ[:, csize+1] = G₃
 
             # Update the counter
             MC.Macc[6] = MC.Macc[6] + 1
@@ -1938,12 +1904,7 @@ Merge two given boxes into one box in the field configuration.
 ### Returns
 N/A
 """
-function try_merge(
-    MC::StochOMMC,
-    SE::StochOMElement,
-    SC::StochOMContext,
-    dacc::F64
-    )
+function try_merge(MC::StochOMMC, SE::StochOMElement, SC::StochOMContext, dacc::F64)
     wmin = get_b("wmin")
     wmax = get_b("wmax")
     csize = length(SE.C)
@@ -1986,9 +1947,9 @@ function try_merge(
     Rₙ = Box(h_new, w_new, c_new + δc)
 
     # Calculate update for Λ
-    G₁ = SE.Λ[:,t₁]
-    G₂ = SE.Λ[:,t₂]
-    Gₑ = SE.Λ[:,csize]
+    G₁ = SE.Λ[:, t₁]
+    G₂ = SE.Λ[:, t₂]
+    Gₑ = SE.Λ[:, csize]
     Gₙ = eval_lambda(Rₙ, SC.grid, SC.𝕊ᵥ)
 
     # Calculate new Δ function, it is actually the error function.
@@ -2008,9 +1969,9 @@ function try_merge(
         # Update Δ, G, and Λ.
         SE.Δ = Δ
         @. SE.G = SE.G - G₁ - G₂ + Gₙ
-        @. SE.Λ[:,t₁] = Gₙ
+        @. SE.Λ[:, t₁] = Gₙ
         if t₂ < csize
-            @. SE.Λ[:,t₂] = Gₑ
+            @. SE.Λ[:, t₂] = Gₑ
         end
 
         # Update the counter
@@ -2084,8 +2045,8 @@ function Pdx(xmin::F64, xmax::F64, rng::AbstractRNG)
     γ_X = γ / X
 
     η = rand(rng, F64)
-    𝑁  = (1 - η) * copysign(expm1(-γ_X * xmin_abs), xmin)
-    𝑁 +=      η  * copysign(expm1(-γ_X * xmax_abs), xmax)
+    𝑁 = (1 - η) * copysign(expm1(-γ_X * xmin_abs), xmin)
+    𝑁 += η * copysign(expm1(-γ_X * xmax_abs), xmax)
 
-    return copysign( log1p(-abs(𝑁)) / γ_X, 𝑁)
+    return copysign(log1p(-abs(𝑁)) / γ_X, 𝑁)
 end

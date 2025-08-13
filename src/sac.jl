@@ -22,8 +22,8 @@ be sampled by Monte Carlo sweeping procedure.
 * Γₐ -> It means the weights / amplitudes of the δ functions.
 """
 mutable struct StochACElement
-    Γₚ :: Array{I64,2}
-    Γₐ :: Array{F64,2}
+    Γₚ::Array{I64,2}
+    Γₐ::Array{F64,2}
 end
 
 """
@@ -47,19 +47,19 @@ Mutable struct. It is used within the StochAC solver only.
 * αₗ     -> Vector of the α parameters.
 """
 mutable struct StochACContext
-    Gᵥ     :: Vector{F64}
-    σ¹     :: Vector{F64}
-    allow  :: Vector{I64}
-    grid   :: AbstractGrid
-    mesh   :: AbstractMesh
-    model  :: Vector{F64}
-    kernel :: Array{F64,2}
-    Aout   :: Array{F64,2}
-    Δ      :: Array{F64,2}
-    hτ     :: Array{F64,2}
-    Hα     :: Vector{F64}
-    Uα     :: Vector{F64}
-    αₗ     :: Vector{F64}
+    Gᵥ::Vector{F64}
+    σ¹::Vector{F64}
+    allow::Vector{I64}
+    grid::AbstractGrid
+    mesh::AbstractMesh
+    model::Vector{F64}
+    kernel::Array{F64,2}
+    Aout::Array{F64,2}
+    Δ::Array{F64,2}
+    hτ::Array{F64,2}
+    Hα::Vector{F64}
+    Uα::Vector{F64}
+    αₗ::Vector{F64}
 end
 
 #=
@@ -132,7 +132,7 @@ function solve(S::StochACSolver, rd::RawData)
         # Postprocess the solutions
         Asum, Gout = last(SC, Aout, Uα)
         #
-    # Sequential version
+        # Sequential version
     else
         #
         Aout, Uα = run(MC, SE, SC)
@@ -274,8 +274,8 @@ function prun(
     p2::Dict{String,Vector{Any}},
     MC::StochACMC,
     SE::StochACElement,
-    SC::StochACContext
-    )
+    SC::StochACContext,
+)
     # Revise parameteric dicts
     rev_dict_b(p1)
     rev_dict_a(S, p2)
@@ -344,7 +344,7 @@ function average(step::F64, SC::StochACContext)
     Aout = zeros(F64, nmesh, nalph)
     for i = 1:nalph
         for j = 1:nmesh
-            Aout[j,i] = SC.Aout[j,i] * SC.model[j] / π / step
+            Aout[j, i] = SC.Aout[j, i] * SC.model[j] / π / step
         end
     end
 
@@ -386,11 +386,11 @@ function last(SC::StochACContext, Aout::Array{F64,2}, Uα::Vector{F64})
     # Try to fit the internal energies to find out optimal α
     guess = [1.0, 1.0]
     fit_l = curve_fit(fitfun, SC.αₗ[1:5], log10.(Uα[1:5]), guess)
-    fit_r = curve_fit(fitfun, SC.αₗ[end-4:end], log10.(Uα[end-4:end]), guess)
+    fit_r = curve_fit(fitfun, SC.αₗ[(end-4):end], log10.(Uα[(end-4):end]), guess)
     a, b = fit_l.param
     c, d = fit_r.param
     aopt = (d - b) / (a - c)
-    close = argmin( abs.( SC.αₗ .- aopt ) )
+    close = argmin(abs.(SC.αₗ .- aopt))
     println("Fitting parameters [a,b] are: [ $a, $b ]")
     println("Fitting parameters [c,d] are: [ $c, $d ]")
     println("Perhaps the optimal α is: ", aopt)
@@ -398,8 +398,8 @@ function last(SC::StochACContext, Aout::Array{F64,2}, Uα::Vector{F64})
 
     # Calculate final spectral functions and write them
     Asum = zeros(F64, nmesh)
-    for i = close : nalph - 1
-        @. Asum = Asum + (Uα[i] - Uα[i+1]) * Aout[:,i]
+    for i = close:(nalph-1)
+        @. Asum = Asum + (Uα[i] - Uα[i+1]) * Aout[:, i]
     end
     @. Asum = Asum / (Uα[close] - Uα[end])
     fwrite && write_spectrum(SC.mesh, Asum)
@@ -525,7 +525,7 @@ function measure(SE::StochACElement, SC::StochACContext)
     for ia = 1:nalph
         da = view(SE.Γₐ, :, ia)
         dp = view(SE.Γₚ, :, ia)
-        SC.Aout[:,ia] = SC.Aout[:,ia] .+ SC.Δ[:,dp] * da
+        SC.Aout[:, ia] = SC.Aout[:, ia] .+ SC.Δ[:, dp] * da
         SC.Uα[ia] = SC.Uα[ia] + SC.Hα[ia]
     end
 end
@@ -607,11 +607,7 @@ return a StochACElement struct.
 
 See also: [`StochACElement`](@ref).
 """
-function init_element(
-    S::StochACSolver,
-    rng::AbstractRNG,
-    allow::Vector{I64}
-    )
+function init_element(S::StochACSolver, rng::AbstractRNG, allow::Vector{I64})
     nalph = get_a("nalph")
     ngamm = get_a("ngamm")
 
@@ -663,8 +659,8 @@ function init_context(
     allow::Vector{I64},
     grid::AbstractGrid,
     mesh::AbstractMesh,
-    fmesh::AbstractMesh
-    )
+    fmesh::AbstractMesh,
+)
     # Get parameters
     nmesh = get_b("nmesh")
     nalph = get_a("nalph")
@@ -706,7 +702,7 @@ function init_context(
     kernel = Diagonal(S) * V'
 
     # Get new (input) correlator
-    Gᵥ = U' *  (Gᵥ .* σ¹)
+    Gᵥ = U' * (Gᵥ .* σ¹)
 
     # Precompute hamiltonian
     hτ, Hα, Uα = calc_hamil(SE.Γₚ, SE.Γₐ, kernel, Gᵥ)
@@ -714,8 +710,7 @@ function init_context(
     # Precompute α parameters
     αₗ = calc_alpha()
 
-    return StochACContext(Gᵥ, σ¹, allow, grid, mesh, model,
-                        kernel, Aout, Δ, hτ, Hα, Uα, αₗ)
+    return StochACContext(Gᵥ, σ¹, allow, grid, mesh, model, kernel, Aout, Δ, hτ, Hα, Uα, αₗ)
 end
 
 """
@@ -756,7 +751,7 @@ function calc_fmesh(S::StochACSolver)
         end
         #
         fmesh = DynamicMesh(mesh)
-    # Or else we will return a linear mesh directly.
+        # Or else we will return a linear mesh directly.
     else
         fmesh = LinearMesh(nfine, wmin, wmax)
     end
@@ -819,7 +814,7 @@ function calc_delta(fmesh::AbstractMesh, ϕ::Vector{F64})
         # We should convert the mesh `fmesh` from [wmin,wmax] to [0,1].
         𝑥 = (fmesh[i] - wmin) / (wmax - wmin)
         @. s = (ϕ - 𝑥) ^ 2.0 + η₂
-        @. Δ[:,i] = η₁ / s
+        @. Δ[:, i] = η₁ / s
     end
 
     return Δ
@@ -852,8 +847,8 @@ function calc_hamil(
     Γₚ::Array{I64,2},
     Γₐ::Array{F64,2},
     kernel::Matrix{F64},
-    Gᵥ::Vector{F64}
-    )
+    Gᵥ::Vector{F64},
+)
     nalph = get_a("nalph")
     ngrid = length(Gᵥ) # It is not equal to get_b("ngrid") any more!
 
@@ -862,8 +857,8 @@ function calc_hamil(
     Uα = zeros(F64, nalph)
 
     for i = 1:nalph
-        hτ[:,i] = calc_htau(Γₚ[:,i], Γₐ[:,i], kernel, Gᵥ)
-        Hα[i] = dot(hτ[:,i], hτ[:,i])
+        hτ[:, i] = calc_htau(Γₚ[:, i], Γₐ[:, i], kernel, Gᵥ)
+        Hα[i] = dot(hτ[:, i], hτ[:, i])
     end
 
     return hτ, Hα, Uα
@@ -890,9 +885,7 @@ See above explanations.
 
 See also: [`calc_hamil`](@ref).
 """
-function calc_htau(Γₚ::Vector{I64}, Γₐ::Vector{F64},
-                   kernel::Matrix{F64},
-                   Gᵥ::Vector{F64})
+function calc_htau(Γₚ::Vector{I64}, Γₐ::Vector{F64}, kernel::Matrix{F64}, Gᵥ::Vector{F64})
     hτ = similar(Gᵥ)
     #
     for i in eachindex(Gᵥ)
@@ -918,7 +911,7 @@ function calc_alpha()
     alpha = get_a("alpha")
     ratio = get_a("ratio")
 
-    αₗ = collect(alpha * (ratio ^ (x - 1)) for x in 1:nalph)
+    αₗ = collect(alpha * (ratio ^ (x - 1)) for x = 1:nalph)
 
     return αₗ
 end
@@ -990,12 +983,7 @@ N/A
 
 See also: [`try_move_p`](@ref).
 """
-function try_move_s(
-    i::I64,
-    MC::StochACMC,
-    SE::StochACElement,
-    SC::StochACContext
-    )
+function try_move_s(i::I64, MC::StochACMC, SE::StochACElement, SC::StochACContext)
     # Get current number of δ functions
     ngamm = get_a("ngamm")
 
@@ -1003,7 +991,7 @@ function try_move_s(
     γ = rand(MC.rng, 1:ngamm)
 
     # Extract weight for the δ function
-    a = SE.Γₐ[γ,i]
+    a = SE.Γₐ[γ, i]
 
     # Choose new position for the δ function
     p = rand(MC.rng, SC.allow)
@@ -1011,7 +999,7 @@ function try_move_s(
     # Try to calculate the change of Hc using Eq.~(42).
     hc = view(SC.hτ, :, i)
     Kₚ = view(SC.kernel, :, p)
-    Kᵧ = view(SC.kernel, :, SE.Γₚ[γ,i])
+    Kᵧ = view(SC.kernel, :, SE.Γₚ[γ, i])
     #
     δhc = a * (Kₚ - Kᵧ)
     δH = dot(δhc, 2.0 * hc + δhc)
@@ -1020,7 +1008,7 @@ function try_move_s(
     MC.Mtry[i] = MC.Mtry[i] + 1
     if δH ≤ 0.0 || exp(-SC.αₗ[i] * δH) > rand(MC.rng)
         # Update Monte Carlo configurations
-        SE.Γₚ[γ,i] = p
+        SE.Γₚ[γ, i] = p
 
         # Update h(τ)
         @. hc = hc + δhc
@@ -1054,12 +1042,7 @@ N/A
 
 See also: [`try_move_s`](@ref).
 """
-function try_move_p(
-    i::I64,
-    MC::StochACMC,
-    SE::StochACElement,
-    SC::StochACContext
-    )
+function try_move_p(i::I64, MC::StochACMC, SE::StochACElement, SC::StochACContext)
     # Get current number of δ functions
     ngamm = get_a("ngamm")
     #
@@ -1076,8 +1059,8 @@ function try_move_p(
     end
 
     # Extract weights for the two δ functions (a₁ and a₂)
-    a₁ = SE.Γₐ[γ₁,i]
-    a₂ = SE.Γₐ[γ₂,i]
+    a₁ = SE.Γₐ[γ₁, i]
+    a₂ = SE.Γₐ[γ₂, i]
 
     # Choose new positions for the two δ functions (p₁ and p₂).
     # Note that their old positions are SE.Γₚ[γ₁,i] and SE.Γₚ[γ₂,i].
@@ -1088,8 +1071,8 @@ function try_move_p(
     hc = view(SC.hτ, :, i)
     K₁ = view(SC.kernel, :, p₁)
     K₂ = view(SC.kernel, :, p₂)
-    K₃ = view(SC.kernel, :, SE.Γₚ[γ₁,i])
-    K₄ = view(SC.kernel, :, SE.Γₚ[γ₂,i])
+    K₃ = view(SC.kernel, :, SE.Γₚ[γ₁, i])
+    K₄ = view(SC.kernel, :, SE.Γₚ[γ₂, i])
     #
     δhc = a₁ * (K₁ - K₃) + a₂ * (K₂ - K₄)
     δH = dot(δhc, 2.0 * hc + δhc)
@@ -1098,8 +1081,8 @@ function try_move_p(
     MC.Mtry[i] = MC.Mtry[i] + 1
     if δH ≤ 0.0 || exp(-SC.αₗ[i] * δH) > rand(MC.rng)
         # Update Monte Carlo configurations
-        SE.Γₚ[γ₁,i] = p₁
-        SE.Γₚ[γ₂,i] = p₂
+        SE.Γₚ[γ₁, i] = p₁
+        SE.Γₚ[γ₂, i] = p₂
 
         # Update h(τ)
         @. hc = hc + δhc
@@ -1133,12 +1116,7 @@ N/A
 
 See also: [`try_move_x`](@ref).
 """
-function try_move_a(
-    i::I64,
-    MC::StochACMC,
-    SE::StochACElement,
-    SC::StochACContext
-    )
+function try_move_a(i::I64, MC::StochACMC, SE::StochACElement, SC::StochACContext)
     # Get current number of δ functions
     ngamm = get_a("ngamm")
     #
@@ -1158,8 +1136,8 @@ function try_move_a(
     # calculate new weights for them (a₁ and a₂).
     a₁ = 0.0
     a₂ = 0.0
-    a₃ = SE.Γₐ[γ₁,i]
-    a₄ = SE.Γₐ[γ₂,i]
+    a₃ = SE.Γₐ[γ₁, i]
+    a₄ = SE.Γₐ[γ₂, i]
     δa = 0.0
     while true
         δa = rand(MC.rng) * (a₃ + a₄) - a₃
@@ -1172,8 +1150,8 @@ function try_move_a(
 
     # Try to calculate the change of Hc using Eq.~(42).
     hc = view(SC.hτ, :, i)
-    K₁ = view(SC.kernel, :, SE.Γₚ[γ₁,i])
-    K₂ = view(SC.kernel, :, SE.Γₚ[γ₂,i])
+    K₁ = view(SC.kernel, :, SE.Γₚ[γ₁, i])
+    K₂ = view(SC.kernel, :, SE.Γₚ[γ₂, i])
     #
     δhc = δa * (K₁ - K₂)
     δH = dot(δhc, 2.0 * hc + δhc)
@@ -1182,8 +1160,8 @@ function try_move_a(
     MC.Mtry[i] = MC.Mtry[i] + 1
     if δH ≤ 0.0 || exp(-SC.αₗ[i] * δH) > rand(MC.rng)
         # Update Monte Carlo configurations
-        SE.Γₐ[γ₁,i] = a₁
-        SE.Γₐ[γ₂,i] = a₂
+        SE.Γₐ[γ₁, i] = a₁
+        SE.Γₐ[γ₂, i] = a₂
 
         # Update h(τ)
         @. hc = hc + δhc
@@ -1216,11 +1194,7 @@ N/A
 
 See also: [`try_move_a`](@ref).
 """
-function try_move_x(
-    MC::StochACMC,
-    SE::StochACElement,
-    SC::StochACContext
-    )
+function try_move_x(MC::StochACMC, SE::StochACElement, SC::StochACContext)
     # Get number of α parameters
     nalph = get_a("nalph")
 
@@ -1239,11 +1213,11 @@ function try_move_x(
     MC.Stry[j] = MC.Stry[j] + 1
     if exp(δα * δH) > rand(MC.rng)
         # Update Monte Carlo configurations
-        SE.Γₚ[:,i], SE.Γₚ[:,j] = SE.Γₚ[:,j], SE.Γₚ[:,i]
-        SE.Γₐ[:,i], SE.Γₐ[:,j] = SE.Γₐ[:,j], SE.Γₐ[:,i]
+        SE.Γₚ[:, i], SE.Γₚ[:, j] = SE.Γₚ[:, j], SE.Γₚ[:, i]
+        SE.Γₐ[:, i], SE.Γₐ[:, j] = SE.Γₐ[:, j], SE.Γₐ[:, i]
 
         # Update h(τ) and Hc
-        SC.hτ[:,i], SC.hτ[:,j] = SC.hτ[:,j], SC.hτ[:,i]
+        SC.hτ[:, i], SC.hτ[:, j] = SC.hτ[:, j], SC.hτ[:, i]
         SC.Hα[i], SC.Hα[j] = SC.Hα[j], SC.Hα[i]
 
         # Update Monte Carlo counters

@@ -129,11 +129,7 @@ correlation function.
 
 See also: [`read_real_data`](@ref).
 """
-function read_cmplx_data(
-    finput::AbstractString,
-    ngrid::I64,
-    only_real_part::Bool
-    )
+function read_cmplx_data(finput::AbstractString, ngrid::I64, only_real_part::Bool)
     # Allocate memory
     _grid = zeros(F64, ngrid)
     value = zeros(C64, ngrid)
@@ -220,7 +216,7 @@ function write_spectrum(am::AbstractMesh, αₗ::Vector{F64}, Aout::Array{F64,2}
         open("Aout.data.alpha_$i", "w") do fout
             println(fout, "# $i : α = ", αₗ[i])
             for j in eachindex(am)
-                @printf(fout, "%16.12f %16.12f\n", am[j], Aout[j,i])
+                @printf(fout, "%16.12f %16.12f\n", am[j], Aout[j, i])
             end
         end
     end
@@ -255,7 +251,7 @@ function write_backward(ag::AbstractGrid, G::Vector{F64})
                 @printf(fout, "%16.12f %16.12f\n", ag[i], G[i])
             end
         end
-    # The reproduced data are defined in Matsubara frequency axis.
+        # The reproduced data are defined in Matsubara frequency axis.
     else
         open("repr.data", "w") do fout
             for i in eachindex(ag)
@@ -454,11 +450,7 @@ This function is only useful for the `BarRat` solver.
 ### Returns
 N/A
 """
-function write_barycentric(
-    nodes   :: Vector{C64},
-    values  :: Vector{C64},
-    weights :: Vector{C64}
-    )
+function write_barycentric(nodes::Vector{C64}, values::Vector{C64}, weights::Vector{C64})
     w_times_f = values .* weights
 
     open("barycentric.data", "w") do fout
@@ -572,8 +564,8 @@ function write_pole(
     Aᵥ::Vector{Vector{F64}},
     𝕊ᵥ::Vector{Vector{F64}},
     χ²ᵥ::Vector{F64},
-    fmesh::AbstractMesh
-    )
+    fmesh::AbstractMesh,
+)
     ntry = length(Pᵥ)
 
     open("pole.data", "w") do fout

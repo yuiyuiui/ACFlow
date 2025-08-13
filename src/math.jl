@@ -111,13 +111,7 @@ See above explanations.
 
 See also: [`secant`](@ref).
 """
-function newton(
-    fun::Function,
-    guess,
-    kwargs...;
-    maxiter::I64 = 20000,
-    mixing::F64 = 0.5
-    )
+function newton(fun::Function, guess, kwargs...; maxiter::I64 = 20000, mixing::F64 = 0.5)
     function _apply(feed::Vector{T}, f::Vector{T}, J::Matrix{T}) where {T}
         resid = nothing
         step = 1.0
@@ -129,7 +123,7 @@ function newton(
         end
         if any(x -> x > limit, abs.(feed))
             ratio = abs.(resid ./ feed)
-            max_ratio = maximum( ratio[ abs.(feed) .> limit ] )
+            max_ratio = maximum(ratio[abs.(feed) .> limit])
             if max_ratio > 1.0
                 step = 1.0 / max_ratio
             end
@@ -156,7 +150,7 @@ function newton(
         push!(backs, back)
 
         any(isnan.(back)) && error("Got NaN!")
-        if counter > maxiter || maximum( abs.(back - feed) ) < 1.e-4
+        if counter > maxiter || maximum(abs.(back - feed)) < 1.e-4
             break
         end
     end
@@ -215,14 +209,14 @@ See also: [`simpson`](@ref).
 function trapz(
     x::AbstractVector{S},
     y::AbstractVector{T},
-    linear::Bool = false
-    ) where {S<:Number, T<:Number}
+    linear::Bool = false,
+) where {S<:Number,T<:Number}
     # For linear mesh
     if linear
         h = x[2] - x[1]
-        value = y[1] + y[end] + 2.0 * sum(y[2:end-1])
+        value = y[1] + y[end] + 2.0 * sum(y[2:(end-1)])
         value = h * value / 2.0
-    # For non-equidistant mesh
+        # For non-equidistant mesh
     else
         len = length(x)
         dx = view(x, 2:len) .- view(x, 1:(len-1))
@@ -253,15 +247,12 @@ uniform mesh.
 
 See also: [`trapz`](@ref).
 """
-function simpson(
-    x::AbstractVector{S},
-    y::AbstractVector{T}
-    ) where {S<:Number, T<:Number}
+function simpson(x::AbstractVector{S}, y::AbstractVector{T}) where {S<:Number,T<:Number}
     h = (x[2] - x[1]) / 3.0
 
     even_sum = 0.0
     odd_sum = 0.0
-    for i = 2:length(x)-1
+    for i = 2:(length(x)-1)
         if iseven(i)
             even_sum = even_sum + y[i]
         else
@@ -301,7 +292,7 @@ function second_derivative(x::AbstractVector, y::AbstractVector)
     y_backward = view(y, 1:(N-2))
 
     num = h₁ .* y_forward + h₂ .* y_backward - (h₁ + h₂) .* y_mid
-    den = (h₂.^2) .* h₁ + (h₁.^2) .* h₂
+    den = (h₂ .^ 2) .* h₁ + (h₁ .^ 2) .* h₂
     return 2 .* num ./ den
 end
 
@@ -381,8 +372,8 @@ It represents the linear interpolation algorithm.
 struct LinearInterpolation{uType,tType,FT,T} <: AbstractInterpolation{FT,T}
     u::uType
     t::tType
-    function LinearInterpolation{FT}(u,t) where {FT}
-        new{typeof(u),typeof(t),FT,eltype(u)}(u,t)
+    function LinearInterpolation{FT}(u, t) where {FT}
+        new{typeof(u),typeof(t),FT,eltype(u)}(u, t)
     end
 end
 
@@ -394,7 +385,7 @@ and `x`, respectively.
 """
 function LinearInterpolation(u::AbstractVector, t::AbstractVector)
     u, t = munge_data(u, t)
-    LinearInterpolation{true}(u,t)
+    LinearInterpolation{true}(u, t)
 end
 
 """
@@ -405,8 +396,8 @@ It represents the quadratic interpolation algorithm.
 struct QuadraticInterpolation{uType,tType,FT,T} <: AbstractInterpolation{FT,T}
     u::uType
     t::tType
-    function QuadraticInterpolation{FT}(u,t) where {FT}
-        new{typeof(u),typeof(t),FT,eltype(u)}(u,t)
+    function QuadraticInterpolation{FT}(u, t) where {FT}
+        new{typeof(u),typeof(t),FT,eltype(u)}(u, t)
     end
 end
 
@@ -418,7 +409,7 @@ Create a QuadraticInterpolation struct. Note that `u` and `t` denote
 """
 function QuadraticInterpolation(u::AbstractVector, t::AbstractVector)
     u, t = munge_data(u, t)
-    QuadraticInterpolation{true}(u,t)
+    QuadraticInterpolation{true}(u, t)
 end
 
 """
@@ -431,8 +422,8 @@ struct CubicSplineInterpolation{uType,tType,hType,zType,FT,T} <: AbstractInterpo
     t::tType
     h::hType
     z::zType
-    function CubicSplineInterpolation{FT}(u,t,h,z) where {FT}
-        new{typeof(u),typeof(t),typeof(h),typeof(z),FT,eltype(u)}(u,t,h,z)
+    function CubicSplineInterpolation{FT}(u, t, h, z) where {FT}
+        new{typeof(u),typeof(t),typeof(h),typeof(z),FT,eltype(u)}(u, t, h, z)
     end
 end
 
@@ -445,14 +436,18 @@ Create a CubicSplineInterpolation struct. Note that `u` and `t` denote
 function CubicSplineInterpolation(u::AbstractVector, t::AbstractVector)
     u, t = munge_data(u, t)
     n = length(t) - 1
-    h = vcat(0, map(k -> t[k+1] - t[k], 1:length(t)-1), 0)
-    dl = h[2:n+1]
-    d_tmp = 2 .* (h[1:n+1] .+ h[2:n+2])
-    du = h[2:n+1]
-    tA = Tridiagonal(dl,d_tmp,du)
-    d = map(i -> i == 1 || i == n + 1 ? 0 : 6(u[i+1] - u[i]) / h[i+1] - 6(u[i] - u[i-1]) / h[i], 1:n+1)
+    h = vcat(0, map(k -> t[k+1] - t[k], 1:(length(t)-1)), 0)
+    dl = h[2:(n+1)]
+    d_tmp = 2 .* (h[1:(n+1)] .+ h[2:(n+2)])
+    du = h[2:(n+1)]
+    tA = Tridiagonal(dl, d_tmp, du)
+    d = map(
+        i ->
+            i == 1 || i == n + 1 ? 0 : 6(u[i+1] - u[i]) / h[i+1] - 6(u[i] - u[i-1]) / h[i],
+        1:(n+1),
+    )
     z = tA\d
-    CubicSplineInterpolation{true}(u,t,h[1:n+1],z)
+    CubicSplineInterpolation{true}(u, t, h[1:(n+1)], z)
 end
 
 """
@@ -475,9 +470,8 @@ function munge_data(u::AbstractVector, t::AbstractVector)
     Tu = Base.nonmissingtype(eltype(u))
     Tt = Base.nonmissingtype(eltype(t))
     @assert length(t) == length(u)
-    non_missing_indices = collect(
-        i for i in 1:length(t) if !ismissing(u[i]) && !ismissing(t[i])
-    )
+    non_missing_indices =
+        collect(i for i = 1:length(t) if !ismissing(u[i]) && !ismissing(t[i]))
     newu = Tu.([u[i] for i in non_missing_indices])
     newt = Tt.([t[i] for i in non_missing_indices])
     return newu, newt
@@ -501,7 +495,7 @@ See also: [`LinearInterpolation`](@ref).
 """
 function _interp(A::LinearInterpolation{<:AbstractVector}, t::Number)
     idx = max(1, min(searchsortedlast(A.t, t), length(A.t) - 1))
-    θ = (t - A.t[idx])/(A.t[idx + 1] - A.t[idx])
+    θ = (t - A.t[idx])/(A.t[idx+1] - A.t[idx])
     return (1 - θ)*A.u[idx] + θ*A.u[idx+1]
 end
 
@@ -622,7 +616,7 @@ function _einsum(expr::Expr, inbounds = true)
         duplicated = false
         di = rhs_axis_exprs[i]
 
-        for j = 1:(i - 1)
+        for j = 1:(i-1)
             if rhs_indices[j] == rhs_indices[i]
                 duplicated = true
                 dj = rhs_axis_exprs[j]
@@ -630,7 +624,7 @@ function _einsum(expr::Expr, inbounds = true)
             end
         end
 
-        for j = eachindex(lhs_indices)
+        for j in eachindex(lhs_indices)
             if lhs_indices[j] == rhs_indices[i]
                 dj = lhs_axis_exprs[j]
                 if Meta.isexpr(expr, :(:=))
@@ -658,7 +652,7 @@ function _einsum(expr::Expr, inbounds = true)
 
         # Don't need to check rhs, already done above
 
-        for j = 1:(i - 1)
+        for j = 1:(i-1)
             if lhs_indices[j] == lhs_indices[i]
                 duplicated = true
                 dj = lhs_axis_exprs[j]
@@ -749,13 +743,18 @@ function check_index_occurrence(lhs_indices, rhs_indices)
 
         if length(missing_indices) == 1
             missing_string = "\"$(missing_indices[1])\""
-            throw(ArgumentError(string(
-                "Index ", missing_string, " is occuring only on left side")))
+            throw(
+                ArgumentError(
+                    string("Index ", missing_string, " is occuring only on left side"),
+                ),
+            )
         else
-            missing_string = join(("\"$ix\"" for ix in missing_indices),
-                                  ", ", " and ")
-            throw(ArgumentError(string(
-                "Indices ", missing_string, " are occuring only on left side")))
+            missing_string = join(("\"$ix\"" for ix in missing_indices), ", ", " and ")
+            throw(
+                ArgumentError(
+                    string("Indices ", missing_string, " are occuring only on left side"),
+                ),
+            )
         end
     end
 end
@@ -774,43 +773,53 @@ end
 
 # Expand loops
 function nest_loop(expr::Expr, index_name::Symbol, axis_expression::Expr)
-    loop = :(for $index_name = 1:$axis_expression
-                 $expr
-             end)
+    loop = :(
+        for $index_name = 1:($axis_expression)
+            $expr
+        end
+    )
     return loop
 end
 
 extractindices(expr) = extractindices!(expr, Symbol[], Symbol[], Expr[])
 
-function extractindices!(expr::Symbol,
-                         array_names::Vector{Symbol},
-                         index_names::Vector{Symbol},
-                         axis_expressions::Vector{Expr})
+function extractindices!(
+    expr::Symbol,
+    array_names::Vector{Symbol},
+    index_names::Vector{Symbol},
+    axis_expressions::Vector{Expr},
+)
     push!(array_names, expr)
     return array_names, index_names, axis_expressions
 end
 
-function extractindices!(expr::Number,
-                         array_names::Vector{Symbol},
-                         index_names::Vector{Symbol},
-                         axis_expressions::Vector{Expr})
+function extractindices!(
+    expr::Number,
+    array_names::Vector{Symbol},
+    index_names::Vector{Symbol},
+    axis_expressions::Vector{Expr},
+)
     return array_names, index_names, axis_expressions
 end
 
-function extractindices!(expr::Expr,
-                         array_names::Vector{Symbol},
-                         index_names::Vector{Symbol},
-                         axis_expressions::Vector{Expr})
+function extractindices!(
+    expr::Expr,
+    array_names::Vector{Symbol},
+    index_names::Vector{Symbol},
+    axis_expressions::Vector{Expr},
+)
     if Meta.isexpr(expr, :ref)
         array_name = expr.args[1]
         push!(array_names, array_name)
         for (dimension, index_expr) in enumerate(expr.args[2:end])
-            pushindex!(index_expr,
-                       array_name,
-                       dimension,
-                       array_names,
-                       index_names,
-                       axis_expressions)
+            pushindex!(
+                index_expr,
+                array_name,
+                dimension,
+                array_names,
+                index_names,
+                axis_expressions,
+            )
         end
     elseif Meta.isexpr(expr, :call)
         for arg in expr.args[2:end]
@@ -823,31 +832,37 @@ function extractindices!(expr::Expr,
     return return array_names, index_names, axis_expressions
 end
 
-function pushindex!(expr::Symbol,
-                    array_name::Symbol,
-                    dimension::Int,
-                    array_names,
-                    index_names,
-                    axis_expressions)
+function pushindex!(
+    expr::Symbol,
+    array_name::Symbol,
+    dimension::Int,
+    array_names,
+    index_names,
+    axis_expressions,
+)
     push!(index_names, expr)
     push!(axis_expressions, :(size($array_name, $dimension)))
 end
 
-function pushindex!(expr::Number,
-                    array_name::Symbol,
-                    dimension::Int,
-                    array_names,
-                    index_names,
-                    axis_expressions)
+function pushindex!(
+    expr::Number,
+    array_name::Symbol,
+    dimension::Int,
+    array_names,
+    index_names,
+    axis_expressions,
+)
     return nothing
 end
 
-function pushindex!(expr::Expr,
-                    array_name::Symbol,
-                    dimension::Int,
-                    array_names,
-                    index_names,
-                    axis_expressions)
+function pushindex!(
+    expr::Expr,
+    array_name::Symbol,
+    dimension::Int,
+    array_names,
+    index_names,
+    axis_expressions,
+)
     if Meta.isexpr(expr, :call) && length(expr.args) == 3
         op = expr.args[1]
 
@@ -873,8 +888,11 @@ function pushindex!(expr::Expr,
         elseif op == :-
             push!(axis_expressions, :(size($array_name, $dimension) + $offset))
         else
-            throw(ArgumentError(string("Operations inside ref on rhs are ",
-                                       "limited to `+` and `-`")))
+            throw(
+                ArgumentError(
+                    string("Operations inside ref on rhs are ", "limited to `+` and `-`"),
+                ),
+            )
         end
     elseif Meta.isexpr(expr, :quote)
         return nothing
@@ -935,10 +953,10 @@ is available/exists.
 * 𝐽  -> Cache for 𝒥! output.
 """
 mutable struct OnceDifferentiable
-    ℱ!
-    𝒥!
-    𝐹
-    𝐽
+    ℱ!::Any
+    𝒥!::Any
+    𝐹::Any
+    𝐽::Any
 end
 
 """
@@ -965,7 +983,7 @@ function OnceDifferentiable(𝑓, p0::AbstractArray, 𝐹::AbstractArray)
             f₂ = vec(𝑓(x))
             x[i] = xₛ - ϵ
             f₁ = vec(𝑓(x))
-            𝐽[:,i] = (f₂ - f₁) ./ (2 * ϵ)
+            𝐽[:, i] = (f₂ - f₁) ./ (2 * ϵ)
             x[i] = xₛ
         end
     end
@@ -1041,12 +1059,12 @@ algorithm.
 * gconv      -> If the convergence criterion 2 is satisfied.
 """
 struct LMOptimizationResults{T,N}
-    x₀ :: Array{T,N}
-    minimizer :: Array{T,N}
-    minimum :: T
-    iterations :: Int
-    xconv :: Bool
-    gconv :: Bool
+    x₀::Array{T,N}
+    minimizer::Array{T,N}
+    minimum::T
+    iterations::Int
+    xconv::Bool
+    gconv::Bool
 end
 
 """
@@ -1058,21 +1076,21 @@ for the solution.
 
 See also: [`OnceDifferentiable`](@ref).
 """
-function levenberg_marquardt(df::OnceDifferentiable, x₀::AbstractVector{T} where T)
+function levenberg_marquardt(df::OnceDifferentiable, x₀::AbstractVector{T} where {T})
     # Some predefined constants
     min_diagonal = 1e-6 # lower bound on values of diagonal matrix
     #
-    x_tol   = 1e-08 # search tolerance in x
-    g_tol   = 1e-12 # search tolerance in gradient
+    x_tol = 1e-08 # search tolerance in x
+    g_tol = 1e-12 # search tolerance in gradient
     maxIter = 1000  # maximum number of iterations
     #
     Λₘ = 1e+16 # minimum trust region radius
     λₘ = 1e-16 # maximum trust region radius
-    λ  = eltype(x₀)(10) # (inverse of) initial trust region radius
+    λ = eltype(x₀)(10) # (inverse of) initial trust region radius
     λᵢ = 10.0  # λ is multiplied by this factor after step below min quality
     λᵣ = 0.10  # λ is multiplied by this factor after good quality steps
     #
-    min_step_quality  = 1e-3 # for steps below this quality, the trust region is shrinked
+    min_step_quality = 1e-3 # for steps below this quality, the trust region is shrinked
     good_step_quality = 0.75 # for steps above this quality, the trust region is expanded
 
     # First evaluation
@@ -1111,7 +1129,7 @@ function levenberg_marquardt(df::OnceDifferentiable, x₀::AbstractVector{T} whe
         replace!(x -> x ≤ min_diagonal ? min_diagonal : x, 𝐷ᵀ𝐷)
         #
         @simd for i in eachindex(𝐷ᵀ𝐷)
-            @inbounds 𝐽ᵀ𝐽[i,i] += λ * 𝐷ᵀ𝐷[i]
+            @inbounds 𝐽ᵀ𝐽[i, i] += λ * 𝐷ᵀ𝐷[i]
         end
         #
         δx = - 𝐽ᵀ𝐽 \ (𝐽' * 𝐹)
@@ -1182,10 +1200,10 @@ It encapsulates the results for curve fitting.
 * converged -> If the curve-fitting algorithm is converged.
 """
 struct LsqFitResult
-    param
-    resid
-    jacobian
-    converged
+    param::Any
+    resid::Any
+    jacobian::Any
+    converged::Any
 end
 
 """
@@ -1249,10 +1267,10 @@ is available/exists.
 * 𝐷  -> Cache for 𝒟! output.
 """
 mutable struct BFGSDifferentiable
-    ℱ!
-    𝒟!
-    𝐹
-    𝐷
+    ℱ!::Any
+    𝒟!::Any
+    𝐹::Any
+    𝐷::Any
 end
 
 """
@@ -1310,16 +1328,16 @@ Mutable struct. It is used to trace the history of states visited.
 * H⁻¹   -> Current inverse Hessian matrix.
 * alpha -> A internal parameter to control the BFGS algorithm.
 """
-mutable struct BFGSState{Tx, Tm, T, G}
-    x :: Tx
-    ls :: Tx
-    δx :: Tx
-    δg :: Tx
-    xₚ :: Tx
-    gₚ :: G
-    fₚ :: T
-    H⁻¹ :: Tm
-    alpha :: T
+mutable struct BFGSState{Tx,Tm,T,G}
+    x::Tx
+    ls::Tx
+    δx::Tx
+    δg::Tx
+    xₚ::Tx
+    gₚ::G
+    fₚ::T
+    H⁻¹::Tm
+    alpha::T
 end
 
 """
@@ -1339,17 +1357,17 @@ It is used to save the optimization results of the BFGS algorithm.
 * resid      -> Maximum gradient of f at the final solution.
 * gconv      -> If the convergence criterion is satisfied
 """
-mutable struct BFGSOptimizationResults{Tx, Tc, Tf}
-    x₀ :: Tx
-    minimizer  :: Tx
-    minimum    :: Tf
-    iterations :: Int
-    δx :: Tc
-    Δx :: Tc
-    δf :: Tc
-    Δf :: Tc
-    resid :: Tc
-    gconv :: Bool
+mutable struct BFGSOptimizationResults{Tx,Tc,Tf}
+    x₀::Tx
+    minimizer::Tx
+    minimum::Tf
+    iterations::Int
+    δx::Tc
+    Δx::Tc
+    δf::Tc
+    Δf::Tc
+    resid::Tc
+    gconv::Bool
 end
 
 """
@@ -1452,11 +1470,18 @@ function optimize(f, g, x₀::AbstractArray; max_iter::I64 = 1000)
     end
 
     # Return BFGSOptimizationResults
-    BFGSOptimizationResults(x₀, s.x, value(d), iteration,
-                            eval_δx(s), eval_Δx(s),
-                            eval_δf(d, s), eval_Δf(d, s),
-                            eval_resid(d),
-                            gconv)
+    BFGSOptimizationResults(
+        x₀,
+        s.x,
+        value(d),
+        iteration,
+        eval_δx(s),
+        eval_Δx(s),
+        eval_δf(d, s),
+        eval_Δf(d, s),
+        eval_resid(d),
+        gconv,
+    )
 end
 
 """
@@ -1480,10 +1505,17 @@ function init_state(d::BFGSDifferentiable, x₀::AbstractArray)
     @. @view(H⁻¹[idxs]) = scale * true
 
     # Return BFGSState
-    BFGSState(x₀, similar(x₀), similar(x₀), similar(x₀), copy(x₀),
-              copy(gradient(d)), real(T)(NaN),
-              H⁻¹,
-              real(one(T)))
+    BFGSState(
+        x₀,
+        similar(x₀),
+        similar(x₀),
+        similar(x₀),
+        copy(x₀),
+        copy(gradient(d)),
+        real(T)(NaN),
+        H⁻¹,
+        real(one(T)),
+    )
 end
 
 """
@@ -1552,21 +1584,25 @@ function update_h!(d::BFGSDifferentiable, s::BFGSState)
 
         # H⁻¹ = H⁻¹ + c1 * (s * s') - c2 * (u * s' + s * u')
         if s.H⁻¹ isa Array
-            H⁻¹ = s.H⁻¹; dx = s.δx; u = su;
-            @inbounds for j in 1:n
+            H⁻¹ = s.H⁻¹;
+            dx = s.δx;
+            u = su;
+            @inbounds for j = 1:n
                 c1dxj = c1 * dx[j]'
                 c2dxj = c2 * dx[j]'
-                c2uj  = c2 *  u[j]'
-                for i in 1:n
-                    H⁻¹[i, j] = muladd(dx[i], c1dxj,
-                                    muladd(-u[i], c2dxj,
-                                        muladd(c2uj, -dx[i], H⁻¹[i, j])))
+                c2uj = c2 * u[j]'
+                for i = 1:n
+                    H⁻¹[i, j] = muladd(
+                        dx[i],
+                        c1dxj,
+                        muladd(-u[i], c2dxj, muladd(c2uj, -dx[i], H⁻¹[i, j])),
+                    )
                 end
             end
         else
             mul!(s.H⁻¹, vec(s.δx), vec(s.δx)', +c1, 1)
-            mul!(s.H⁻¹, vec(su  ), vec(s.δx)', -c2, 1)
-            mul!(s.H⁻¹, vec(s.δx), vec(su  )', -c2, 1)
+            mul!(s.H⁻¹, vec(su), vec(s.δx)', -c2, 1)
+            mul!(s.H⁻¹, vec(s.δx), vec(su)', -c2, 1)
         end
     end
 end
@@ -1639,10 +1675,10 @@ function converged(r::BFGSOptimizationResults)
     conv_flags = r.gconv
     x_isfinite = isfinite(r.δx) || isnan(r.Δx)
     f_isfinite = if r.iterations > 0
-            isfinite(r.δf) || isnan(r.Δf)
-        else
-            true
-        end
+        isfinite(r.δf) || isnan(r.Δf)
+    else
+        true
+    end
     g_isfinite = isfinite(r.resid)
     return conv_flags && all((x_isfinite, f_isfinite, g_isfinite))
 end
@@ -1694,8 +1730,8 @@ the line search.
 * alpha   -> A key parameter used to control line search.
 """
 mutable struct LineSearchException{T<:Real} <: Exception
-    message :: AbstractString
-    alpha :: T
+    message::AbstractString
+    alpha::T
 end
 
 """
@@ -1703,7 +1739,7 @@ end
 
 Line search: initial and static version.
 """
-function LS(state::BFGSState, alpha::T, scaled::Bool) where T
+function LS(state::BFGSState, alpha::T, scaled::Bool) where {T}
     PT = promote_type(T, real(eltype(state.ls)))
     if scaled == true && (ns = real(norm(state.ls))) > convert(PT, 0)
         state.alpha = convert(PT, min(alpha, ns)) / ns
@@ -1719,9 +1755,14 @@ end
 
 Line search: Hager-Zhang algorithm.
 """
-function LS(df::BFGSDifferentiable,
-            x::Vector{C64}, s::Vector{C64},
-            c::F64, phi_0::F64, dphi_0::F64)
+function LS(
+    df::BFGSDifferentiable,
+    x::Vector{C64},
+    s::Vector{C64},
+    c::F64,
+    phi_0::F64,
+    dphi_0::F64,
+)
     delta = 0.1
     sigma = 0.9
     alphamax = Inf
@@ -1738,7 +1779,9 @@ function LS(df::BFGSDifferentiable,
     zeroT = convert(T, 0)
     #
     if !(isfinite(phi_0) && isfinite(dphi_0))
-        throw(LineSearchException("Value and slope at step length = 0 must be finite.", T(0)))
+        throw(
+            LineSearchException("Value and slope at step length = 0 must be finite.", T(0)),
+        )
     end
     #
     if dphi_0 >= eps(T) * abs(phi_0)
@@ -1781,7 +1824,7 @@ function LS(df::BFGSDifferentiable,
     # If c was generated by quadratic interpolation, check whether it
     # satisfies the Wolfe conditions
     if mayterminate[] &&
-          satisfies_wolfe(c, phi_c, dphi_c, phi_0, dphi_0, phi_lim, delta, sigma)
+       satisfies_wolfe(c, phi_c, dphi_c, phi_0, dphi_0, phi_lim, delta, sigma)
         # Reset in case another initial guess is used next
         mayterminate[] = false
         return c, phi_c # phi_c
@@ -1799,7 +1842,7 @@ function LS(df::BFGSDifferentiable,
             # We've reached the upward slope, so we have b; examine
             # previous values to find a
             ib = length(alphas)
-            for i = (ib - 1):-1:1
+            for i = (ib-1):-1:1
                 if values[i] <= phi_lim
                     ia = i
                     break
@@ -1811,7 +1854,7 @@ function LS(df::BFGSDifferentiable,
             # have crested over the peak. Use bisection.
             ib = length(alphas)
             ia = 1
-            if c ≉  alphas[ib] || slopes[ib] >= zeroT
+            if c ≉ alphas[ib] || slopes[ib] >= zeroT
                 error("c = ", c)
             end
             ia, ib = ls_bisect!(ϕdϕ, alphas, values, slopes, ia, ib, phi_lim)
@@ -1840,7 +1883,8 @@ function LS(df::BFGSDifferentiable,
             phi_c, dphi_c = ϕdϕ(c)
             iterfinite = 1
             while !(isfinite(phi_c) && isfinite(dphi_c)) &&
-                    c > nextfloat(cold) && iterfinite < iterfinitemax
+                      c > nextfloat(cold) &&
+                      iterfinite < iterfinitemax
                 # Shrinks alphamax, assumes that steps >= c can never
                 # have finite phi_c and dphi_c.
                 alphamax = c
@@ -1867,7 +1911,8 @@ function LS(df::BFGSDifferentiable,
             mayterminate[] = false
             return a, values[ia] # lsr.value[ia]
         end
-        iswolfe, iA, iB = ls_secant2!(ϕdϕ, alphas, values, slopes, ia, ib, phi_lim, delta, sigma)
+        iswolfe, iA, iB =
+            ls_secant2!(ϕdϕ, alphas, values, slopes, ia, ib, phi_lim, delta, sigma)
         if iswolfe
             # Reset in case another initial guess is used next
             mayterminate[] = false
@@ -1895,19 +1940,23 @@ function LS(df::BFGSDifferentiable,
             push!(values, phi_c)
             push!(slopes, dphi_c)
 
-            ia, ib = ls_update!(ϕdϕ, alphas, values, slopes, iA, iB, length(alphas), phi_lim)
+            ia, ib =
+                ls_update!(ϕdϕ, alphas, values, slopes, iA, iB, length(alphas), phi_lim)
         end
         iter += 1
     end
 
-    throw(LineSearchException("Linesearch failed to converge, reached maximum
-                               iterations $(linesearchmax).", alphas[ia]))
+    throw(LineSearchException(
+        "Linesearch failed to converge, reached maximum
+         iterations $(linesearchmax).",
+        alphas[ia],
+    ))
 end
 
 function make_ϕdϕ(df::BFGSDifferentiable, x_new, x, s)
     function ϕdϕ(α)
         # Move a distance of alpha in the direction of s
-        x_new .= x .+ α.*s
+        x_new .= x .+ α .* s
 
         # Evaluate ∇f(x+α*s)
         value_gradient!(df, x_new)
@@ -1919,19 +1968,31 @@ function make_ϕdϕ(df::BFGSDifferentiable, x_new, x, s)
 end
 
 # Check Wolfe & approximate Wolfe
-function satisfies_wolfe(c::F64, phi_c::F64, dphi_c::F64,
-                         phi_0::F64, dphi_0::F64, phi_lim::F64,
-                         delta::F64, sigma::F64)
-    wolfe1 = delta * dphi_0 >= (phi_c - phi_0) / c &&
-               dphi_c >= sigma * dphi_0
-    wolfe2 = (2 * delta - 1) * dphi_0 >= dphi_c >= sigma * dphi_0 &&
-               phi_c <= phi_lim
+function satisfies_wolfe(
+    c::F64,
+    phi_c::F64,
+    dphi_c::F64,
+    phi_0::F64,
+    dphi_0::F64,
+    phi_lim::F64,
+    delta::F64,
+    sigma::F64,
+)
+    wolfe1 = delta * dphi_0 >= (phi_c - phi_0) / c && dphi_c >= sigma * dphi_0
+    wolfe2 = (2 * delta - 1) * dphi_0 >= dphi_c >= sigma * dphi_0 && phi_c <= phi_lim
     return wolfe1 || wolfe2
 end
 
 # HZ, stage U3 (with theta=0.5)
-function ls_bisect!(ϕdϕ, alphas::Vector{F64}, values::Vector{F64},
-                    slopes::Vector{F64}, ia::I64, ib::I64, phi_lim::F64)
+function ls_bisect!(
+    ϕdϕ,
+    alphas::Vector{F64},
+    values::Vector{F64},
+    slopes::Vector{F64},
+    ia::I64,
+    ib::I64,
+    phi_lim::F64,
+)
     T = eltype(alphas)
     gphi = convert(T, NaN)
     a = alphas[ia]
@@ -1978,10 +2039,17 @@ function ls_secant(a::F64, b::F64, dphi_a::F64, dphi_b::F64)
     return (a * dphi_b - b * dphi_a) / (dphi_b - dphi_a)
 end
 
-function ls_secant2!(ϕdϕ, alphas::Vector{F64},
-                     values::Vector{F64}, slopes::Vector{F64},
-                     ia::I64, ib::I64,
-                     phi_lim::F64, delta::F64, sigma::F64)
+function ls_secant2!(
+    ϕdϕ,
+    alphas::Vector{F64},
+    values::Vector{F64},
+    slopes::Vector{F64},
+    ia::I64,
+    ib::I64,
+    phi_lim::F64,
+    delta::F64,
+    sigma::F64,
+)
     phi_0 = values[1]
     dphi_0 = slopes[1]
     a = alphas[ia]
@@ -1993,9 +2061,13 @@ function ls_secant2!(ϕdϕ, alphas::Vector{F64},
     zeroT = convert(T, 0)
     #
     if !(dphi_a < zeroT && dphi_b >= zeroT)
-        error(string("Search direction is not a direction of descent; ",
-                     "this error may indicate that user-provided derivatives are inaccurate. ",
-                      @sprintf "(dphi_a = %f; dphi_b = %f)" dphi_a dphi_b))
+        error(
+            string(
+                "Search direction is not a direction of descent; ",
+                "this error may indicate that user-provided derivatives are inaccurate. ",
+                @sprintf "(dphi_a = %f; dphi_b = %f)" dphi_a dphi_b
+            ),
+        )
     end
     #
     c = ls_secant(a, b, dphi_a, dphi_b)
@@ -2049,9 +2121,16 @@ end
 # Given a third point, pick the best two that retain the bracket
 # around the minimum (as defined by HZ, eq. 29)
 # b will be the upper bound, and a the lower bound
-function ls_update!(ϕdϕ, alphas::Vector{F64},
-                    values::Vector{F64}, slopes::Vector{F64},
-                    ia::I64, ib::I64, ic::I64, phi_lim::F64)
+function ls_update!(
+    ϕdϕ,
+    alphas::Vector{F64},
+    values::Vector{F64},
+    slopes::Vector{F64},
+    ia::I64,
+    ib::I64,
+    ic::I64,
+    phi_lim::F64,
+)
     a = alphas[ia]
     b = alphas[ib]
     T = eltype(slopes)

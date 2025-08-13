@@ -16,7 +16,7 @@
 #     $ gmesh.jl ac.toml
 #
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Printf
 using ACFlow
@@ -105,36 +105,36 @@ function generate_fmesh(mesh::Vector{F64}, image::Vector{F64})
     #
     @cswitch solver begin
         @case "MaxEnt"
-            sorry()
-            break
+        sorry()
+        break
 
         @case "BarRat"
-            sorry()
-            break
+        sorry()
+        break
 
         @case "NevanAC"
-            sorry()
-            break
+        sorry()
+        break
 
         @case "StochAC"
-            nfine = get_a("nfine")
-            break
+        nfine = get_a("nfine")
+        break
 
         @case "StochSK"
-            nfine = get_k("nfine")
-            break
+        nfine = get_k("nfine")
+        break
 
         @case "StochOM"
-            sorry()
-            break
+        sorry()
+        break
 
         @case "StochPX"
-            nfine = get_x("nfine")
-            break
+        nfine = get_x("nfine")
+        break
 
         @default
-            sorry()
-            break
+        sorry()
+        break
     end
 
     # Accumulate the spectrum, evaluate its maximum and minimum, and then
@@ -157,5 +157,5 @@ end
 welcome()
 overview()
 read_param()
-write_fmesh( generate_fmesh( read_spectrum()... ) )
+write_fmesh(generate_fmesh(read_spectrum()...))
 goodbye()

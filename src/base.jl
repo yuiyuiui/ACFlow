@@ -118,36 +118,36 @@ function solve(rd::RawData)
         # Choose suitable solver
         @cswitch solver begin
             @case "MaxEnt"
-                return MaxEntSolver()
-                break
+            return MaxEntSolver()
+            break
 
             @case "BarRat"
-                return BarRatSolver()
-                break
+            return BarRatSolver()
+            break
 
             @case "NevanAC"
-                return NevanACSolver()
-                break
+            return NevanACSolver()
+            break
 
             @case "StochAC"
-                return StochACSolver()
-                break
+            return StochACSolver()
+            break
 
             @case "StochSK"
-                return StochSKSolver()
-                break
+            return StochSKSolver()
+            break
 
             @case "StochOM"
-                return StochOMSolver()
-                break
+            return StochOMSolver()
+            break
 
             @case "StochPX"
-                return StochPXSolver()
-                break
+            return StochPXSolver()
+            break
 
             @default
-                sorry()
-                break
+            sorry()
+            break
         end
     end
 
@@ -180,7 +180,7 @@ function reprod(am::AbstractMesh, kernel::Matrix{F64}, A::Vector{F64})
     ndim, nmesh = size(kernel)
     @assert nmesh == length(am) == length(A)
 
-    @einsum KA[i,j] := kernel[i,j] * A[j]
+    @einsum KA[i, j] := kernel[i, j] * A[j]
 
     G = zeros(F64, ndim)
     for i = 1:ndim
@@ -238,28 +238,28 @@ to get the full retarded Green's function.
 """
 function kramers(am::AbstractMesh, A::Vector{F64})
     nmesh = length(am)
-    spectrum = reshape(A, (nmesh,1))
-    weight = reshape(am.weight, (nmesh,1))
-    w₁ = reshape(am.mesh, (1,nmesh))
-    w₂ = reshape(am.mesh, (nmesh,1))
+    spectrum = reshape(A, (nmesh, 1))
+    weight = reshape(am.weight, (nmesh, 1))
+    w₁ = reshape(am.mesh, (1, nmesh))
+    w₂ = reshape(am.mesh, (nmesh, 1))
 
     # For fermionic system
     if am[1] < 0.0
         m = weight .* spectrum ./ (w₁ .- w₂)
-    # For bosonic system, the mesh is defined in positive half-axis only.
+        # For bosonic system, the mesh is defined in positive half-axis only.
     else
         m = 2.0 * weight .* w₁ .* spectrum ./ (w₁ .^ 2.0 .- w₂ .^ 2.0)
     end
 
     # Setup the diagonal elements
     for i = 1:nmesh
-        m[i,i] = 0.0
+        m[i, i] = 0.0
     end
 
     gre = reshape(sum(m, dims = 1), (nmesh))
     gim = -A * π
 
-    return map((x,y) -> x + im * y, gre, gim)
+    return map((x, y) -> x + im * y, gre, gim)
 end
 
 """
@@ -283,11 +283,7 @@ N/A
 
 See also: [`read_param`](@ref).
 """
-function setup_param(
-    C::Dict{String,Any},
-    S::Dict{String,Any},
-    reset::Bool = true
-    )
+function setup_param(C::Dict{String,Any}, S::Dict{String,Any}, reset::Bool = true)
     # _PBASE, _PMaxEnt, _PBarRat, _PNevanAC,
     # _PStochAC, _PStochSK, _PStochOM, and _PStochPX
     #
@@ -300,8 +296,8 @@ function setup_param(
     # dictionaries, respectively.
     reset && begin
         rev_dict_b(_PBASE)
-        rev_dict_m(MaxEntSolver(),   _PMaxEnt)
-        rev_dict_r(BarRatSolver(),   _PBarRat)
+        rev_dict_m(MaxEntSolver(), _PMaxEnt)
+        rev_dict_r(BarRatSolver(), _PBarRat)
         rev_dict_n(NevanACSolver(), _PNevanAC)
         rev_dict_a(StochACSolver(), _PStochAC)
         rev_dict_k(StochSKSolver(), _PStochSK)
@@ -315,36 +311,36 @@ function setup_param(
     #
     @cswitch solver begin
         @case "MaxEnt"
-            rev_dict_m(MaxEntSolver(),  S)
-            break
+        rev_dict_m(MaxEntSolver(), S)
+        break
 
         @case "BarRat"
-            rev_dict_r(BarRatSolver(),  S)
-            break
+        rev_dict_r(BarRatSolver(), S)
+        break
 
         @case "NevanAC"
-            rev_dict_n(NevanACSolver(), S)
-            break
+        rev_dict_n(NevanACSolver(), S)
+        break
 
         @case "StochAC"
-            rev_dict_a(StochACSolver(), S)
-            break
+        rev_dict_a(StochACSolver(), S)
+        break
 
         @case "StochSK"
-            rev_dict_k(StochSKSolver(), S)
-            break
+        rev_dict_k(StochSKSolver(), S)
+        break
 
         @case "StochOM"
-            rev_dict_s(StochOMSolver(), S)
-            break
+        rev_dict_s(StochOMSolver(), S)
+        break
 
         @case "StochPX"
-            rev_dict_x(StochPXSolver(), S)
-            break
+        rev_dict_x(StochPXSolver(), S)
+        break
 
         @default
-            sorry()
-            break
+        sorry()
+        break
     end
 end
 
@@ -395,48 +391,48 @@ function read_data(only_real_part::Bool = true)
     function read_dispatcher()
         @cswitch get_b("grid") begin
             @case "ftime"
-                return read_real_data(finput, ngrid)
-                break
+            return read_real_data(finput, ngrid)
+            break
 
             @case "fpart"
-                return read_real_data(finput, ngrid)
-                break
+            return read_real_data(finput, ngrid)
+            break
 
             @case "btime"
-                return read_real_data(finput, ngrid)
-                break
+            return read_real_data(finput, ngrid)
+            break
 
             @case "bpart"
-                return read_real_data(finput, ngrid)
-                break
+            return read_real_data(finput, ngrid)
+            break
 
             @case "ffreq"
-                return read_cmplx_data(finput, ngrid)
-                break
+            return read_cmplx_data(finput, ngrid)
+            break
 
             @case "ffrag"
-                return read_cmplx_data(finput, ngrid)
-                break
+            return read_cmplx_data(finput, ngrid)
+            break
 
             @case "bfreq"
-                if ktype == "boson"
-                    return read_cmplx_data(finput, ngrid)
-                else # ktype == "bsymm"
-                    return read_cmplx_data(finput, ngrid, only_real_part)
-                end
-                break
+            if ktype == "boson"
+                return read_cmplx_data(finput, ngrid)
+            else # ktype == "bsymm"
+                return read_cmplx_data(finput, ngrid, only_real_part)
+            end
+            break
 
             @case "bfrag"
-                if ktype == "boson"
-                    return read_cmplx_data(finput, ngrid)
-                else # ktype == "bsymm"
-                    return read_cmplx_data(finput, ngrid, only_real_part)
-                end
-                break
+            if ktype == "boson"
+                return read_cmplx_data(finput, ngrid)
+            else # ktype == "bsymm"
+                return read_cmplx_data(finput, ngrid, only_real_part)
+            end
+            break
 
             @default
-                sorry()
-                break
+            sorry()
+            break
         end
     end
 
@@ -472,19 +468,21 @@ function make_data(rd::RawData; T::DataType = F64)
     val = rd.value
     err = rd.error
 
-    if grid == "ffreq" || ( grid == "bfreq" && ktype == "boson" ) ||
-       grid == "ffrag" || ( grid == "bfrag" && ktype == "boson" )
-        value = T.( vcat(real(val), imag(val)) )
-        error = T.( vcat(real(err), imag(err)) )
+    if grid == "ffreq" ||
+       (grid == "bfreq" && ktype == "boson") ||
+       grid == "ffrag" ||
+       (grid == "bfrag" && ktype == "boson")
+        value = T.(vcat(real(val), imag(val)))
+        error = T.(vcat(real(err), imag(err)))
         covar = error .^ 2.0
         _data = GreenData(value, error, covar)
         return _data
     else # grid == "bfreq" && ktype == "bsymm"
-         # grid == "bfrag" && ktype == "bsymm"
-         # grid == "ftime" || grid == "fpart"
-         # grid == "btime" || grid == "bpart"
-        value = T.( real(val) )
-        error = T.( real(err) )
+        # grid == "bfrag" && ktype == "bsymm"
+        # grid == "ftime" || grid == "fpart"
+        # grid == "btime" || grid == "bpart"
+        value = T.(real(val))
+        error = T.(real(err))
         covar = error .^ 2.0
         _data = GreenData(value, error, covar)
         return _data
@@ -517,48 +515,48 @@ function make_grid(rd::RawData; T::DataType = F64)
     #
     @cswitch grid begin
         @case "ftime"
-            _β = v[end]
-            @assert abs(_β - β) ≤ 1e-6
-            _grid = FermionicImaginaryTimeGrid(ngrid, β, v)
-            break
+        _β = v[end]
+        @assert abs(_β - β) ≤ 1e-6
+        _grid = FermionicImaginaryTimeGrid(ngrid, β, v)
+        break
 
         @case "fpart"
-            _grid = FermionicFragmentTimeGrid(β, v)
-            break
+        _grid = FermionicFragmentTimeGrid(β, v)
+        break
 
         @case "btime"
-            _β = v[end]
-            @assert abs(_β - β) ≤ 1e-6
-            _grid = BosonicImaginaryTimeGrid(ngrid, β, v)
-            break
+        _β = v[end]
+        @assert abs(_β - β) ≤ 1e-6
+        _grid = BosonicImaginaryTimeGrid(ngrid, β, v)
+        break
 
         @case "bpart"
-            _grid = BosonicFragmentTimeGrid(β, v)
-            break
+        _grid = BosonicFragmentTimeGrid(β, v)
+        break
 
         @case "ffreq"
-            _β = 2.0 * π / (v[2] - v[1])
-            @assert abs(_β - β) ≤ 1e-6
-            _grid = FermionicMatsubaraGrid(ngrid, β, v)
-            break
+        _β = 2.0 * π / (v[2] - v[1])
+        @assert abs(_β - β) ≤ 1e-6
+        _grid = FermionicMatsubaraGrid(ngrid, β, v)
+        break
 
         @case "ffrag"
-            _grid = FermionicFragmentMatsubaraGrid(β, v)
-            break
+        _grid = FermionicFragmentMatsubaraGrid(β, v)
+        break
 
         @case "bfreq"
-            _β = 2.0 * π / (v[2] - v[1])
-            @assert abs(_β - β) ≤ 1e-6
-            _grid = BosonicMatsubaraGrid(ngrid, β, v)
-            break
+        _β = 2.0 * π / (v[2] - v[1])
+        @assert abs(_β - β) ≤ 1e-6
+        _grid = BosonicMatsubaraGrid(ngrid, β, v)
+        break
 
         @case "bfrag"
-            _grid = BosonicFragmentMatsubaraGrid(β, v)
-            break
+        _grid = BosonicFragmentMatsubaraGrid(β, v)
+        break
 
         @default
-            sorry()
-            break
+        sorry()
+        break
     end
 
     return _grid
@@ -602,7 +600,7 @@ function make_mesh(; T::DataType = F64)
 
     # Get essential parameters
     ktype = get_b("ktype")
-    mesh  = get_b("mesh")
+    mesh = get_b("mesh")
     nmesh = get_b("nmesh")
     wmax::T = get_b("wmax")
     wmin::T = get_b("wmin")
@@ -618,24 +616,24 @@ function make_mesh(; T::DataType = F64)
     # Try to generate the required mesh
     @cswitch mesh begin
         @case "linear"
-            return LinearMesh(nmesh, wmin, wmax)
-            break
+        return LinearMesh(nmesh, wmin, wmax)
+        break
 
         @case "tangent"
-            return TangentMesh(nmesh, wmin, wmax, f1)
-            break
+        return TangentMesh(nmesh, wmin, wmax, f1)
+        break
 
         @case "lorentz"
-            return LorentzMesh(nmesh, wmin, wmax, cut)
-            break
+        return LorentzMesh(nmesh, wmin, wmax, cut)
+        break
 
         @case "halflorentz"
-            return HalfLorentzMesh(nmesh, wmax, cut)
-            break
+        return HalfLorentzMesh(nmesh, wmax, cut)
+        break
 
         @default
-            sorry()
-            break
+        sorry()
+        break
     end
 end
 
@@ -665,9 +663,15 @@ function make_model(am::AbstractMesh)
     pmodel = get_b("pmodel")
     #
     if !isa(pmodel, Missing)
-        (length(pmodel) == 1) && begin Γ, = pmodel end
-        (length(pmodel) == 2) && begin Γ, s = pmodel end
-        (length(pmodel) == 3) && begin Γ, s₁, s₂ = pmodel end
+        (length(pmodel) == 1) && begin
+            Γ, = pmodel
+        end
+        (length(pmodel) == 2) && begin
+            Γ, s = pmodel
+        end
+        (length(pmodel) == 3) && begin
+            Γ, s₁, s₂ = pmodel
+        end
     end
 
     # Try to generate the required model
@@ -675,48 +679,48 @@ function make_model(am::AbstractMesh)
     #
     @cswitch mtype begin
         @case "flat"
-            return build_flat_model(am)
-            break
+        return build_flat_model(am)
+        break
 
         @case "gauss"
-            return build_gaussian_model(am, Γ)
-            break
+        return build_gaussian_model(am, Γ)
+        break
 
         @case "1gauss"
-            return build_1gaussian_model(am, Γ, s)
-            break
+        return build_1gaussian_model(am, Γ, s)
+        break
 
         @case "2gauss"
-            return build_2gaussians_model(am, Γ, s₁, s₂)
-            break
+        return build_2gaussians_model(am, Γ, s₁, s₂)
+        break
 
         @case "lorentz"
-            return build_lorentzian_model(am, Γ)
-            break
+        return build_lorentzian_model(am, Γ)
+        break
 
         @case "1lorentz"
-            return build_1lorentzian_model(am, Γ, s)
-            break
+        return build_1lorentzian_model(am, Γ, s)
+        break
 
         @case "2lorentz"
-            return build_2lorentzians_model(am, Γ, s₁, s₂)
-            break
+        return build_2lorentzians_model(am, Γ, s₁, s₂)
+        break
 
         @case "risedecay"
-            return build_risedecay_model(am, Γ)
-            break
+        return build_risedecay_model(am, Γ)
+        break
 
         @case "file"
-            return build_file_model(am, fn)
-            break
+        return build_file_model(am, fn)
+        break
 
         @case "func"
-            sorry()
-            break
+        sorry()
+        break
 
         @default
-            sorry()
-            break
+        sorry()
+        break
     end
 end
 
@@ -740,22 +744,22 @@ function make_kernel(am::AbstractMesh, ag::AbstractGrid)
 
     @cswitch ktype begin
         @case "fermi"
-            @assert grid in ("ftime", "fpart", "ffreq", "ffrag")
-            return build_kernel(am, ag)
-            break
+        @assert grid in ("ftime", "fpart", "ffreq", "ffrag")
+        return build_kernel(am, ag)
+        break
 
         @case "boson"
-            @assert grid in ("btime", "bpart", "bfreq", "bfrag")
-            return build_kernel(am, ag)
-            break
+        @assert grid in ("btime", "bpart", "bfreq", "bfrag")
+        return build_kernel(am, ag)
+        break
 
         @case "bsymm"
-            @assert grid in ("btime", "bpart", "bfreq", "bfrag")
-            return build_kernel_symm(am, ag)
-            break
+        @assert grid in ("btime", "bpart", "bfreq", "bfrag")
+        return build_kernel_symm(am, ag)
+        break
 
         @default
-            sorry()
-            break
+        sorry()
+        break
     end
 end

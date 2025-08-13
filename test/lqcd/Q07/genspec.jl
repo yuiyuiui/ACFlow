@@ -13,7 +13,7 @@
 # (2) Try to create a nonlinear mesh by `../../../util/gmesh.jl ac.toml`
 #
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Random
 using Printf
@@ -21,14 +21,14 @@ using ACFlow
 
 # Setup parameters
 wmin = +9.0  # Left boundary
-wmax = +16.  # Right boundary
+wmax = +16.0  # Right boundary
 nmesh = 1001 # Number of real-frequency points
-𝑀₁   = 9.60  # Parameters for Gaussian mixture model
-𝑀₂   = 11.5
-Γ₁   = 0.01
-Γ₂   = 5.00
-𝐴₁   = 5.00
-𝐴₂   = 1.80
+𝑀₁ = 9.60  # Parameters for Gaussian mixture model
+𝑀₂ = 11.5
+Γ₁ = 0.01
+Γ₂ = 5.00
+𝐴₁ = 5.00
+𝐴₂ = 1.80
 
 # Real frequency mesh
 rmesh = collect(LinRange(wmin, wmax, nmesh))
@@ -37,7 +37,7 @@ rmesh = collect(LinRange(wmin, wmax, nmesh))
 image = similar(rmesh)
 #
 for i in eachindex(rmesh)
-    image[i] =            𝐴₁ * exp(-(rmesh[i] - 𝑀₁) ^ 2.0 / Γ₁)
+    image[i] = 𝐴₁ * exp(-(rmesh[i] - 𝑀₁) ^ 2.0 / Γ₁)
     image[i] = image[i] + 𝐴₂ * exp(-(rmesh[i] - 𝑀₂) ^ 2.0 / Γ₂)
 end
 

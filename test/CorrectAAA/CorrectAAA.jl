@@ -1,7 +1,11 @@
 using ACFlow, Plots, DelimitedFiles, QuadGK, Distributions, Random
 
 # construct combanition of gauss waves
-function continous_spectral_density(μ::Vector{Float64}, σ::Vector{Float64}, amplitude::Vector{Float64})
+function continous_spectral_density(
+    μ::Vector{Float64},
+    σ::Vector{Float64},
+    amplitude::Vector{Float64},
+)
     @assert length(μ) == length(σ) == length(amplitude)
     n = length(μ)
     function y(x::Float64)
@@ -15,8 +19,15 @@ function continous_spectral_density(μ::Vector{Float64}, σ::Vector{Float64}, am
 end
 
 # generate values of G(iw_n)
-function generate_G_values_cont(β::Float64, N::Int64, A; int_low::Float64=-20.0, int_up::Float64=20.0, noise::Float64=0.0)
-    grid = (collect(0:N-1) .+ 0.5) * 2π / β
+function generate_G_values_cont(
+    β::Float64,
+    N::Int64,
+    A;
+    int_low::Float64 = -20.0,
+    int_up::Float64 = 20.0,
+    noise::Float64 = 0.0,
+)
+    grid = (collect(0:(N-1)) .+ 0.5) * 2π / β
     n = length(grid)
     res = zeros(ComplexF64, n)
     for i = 1:n
@@ -30,20 +41,21 @@ function generate_G_values_cont(β::Float64, N::Int64, A; int_low::Float64=-20.0
 end
 
 function correct_aaa(;
-    seed=6,
-    μ=[0.5, -2.5],
-    σ=[0.2, 0.8],
-    amplitude=[1.0, 0.3],
-    β=10.0,
-    N=20,
-    output_bound=8.0,
-    output_number=801,
-    noise=1e-5)
+    seed = 6,
+    μ = [0.5, -2.5],
+    σ = [0.2, 0.8],
+    amplitude = [1.0, 0.3],
+    β = 10.0,
+    N = 20,
+    output_bound = 8.0,
+    output_number = 801,
+    noise = 1e-5,
+)
 
     Random.seed!(seed)
-    iwn = collect((0:N-1) .+ 0.5) * 2π / β
+    iwn = collect((0:(N-1)) .+ 0.5) * 2π / β
     A = continous_spectral_density(μ, σ, amplitude)
-    GFV = generate_G_values_cont(β, N, A; noise=noise)
+    GFV = generate_G_values_cont(β, N, A; noise = noise)
 
     B = Dict{String,Any}(
         "solver" => "BarRat",  # Choose MaxEnt solver
@@ -73,7 +85,5 @@ end
 
 mesh, reA, originA = correct_aaa()
 
-plot(mesh, reA, label="reconstruct spectral density")
-plot!(mesh, originA, label="origin spectral density")
-
-
+plot(mesh, reA, label = "reconstruct spectral density")
+plot!(mesh, originA, label = "origin spectral density")

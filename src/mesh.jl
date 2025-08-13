@@ -33,7 +33,7 @@ function LinearMesh(nmesh::I64, wmin::T, wmax::T) where {T}
 
     mesh = collect(LinRange(wmin, wmax, nmesh))
     #
-    weight = (mesh[2:end] + mesh[1:end-1]) / 2.0
+    weight = (mesh[2:end] + mesh[1:(end-1)]) / 2.0
     pushfirst!(weight, mesh[1])
     push!(weight, mesh[end])
     weight = diff(weight)
@@ -71,7 +71,7 @@ function TangentMesh(nmesh::I64, wmin::T, wmax::T, 𝑝::T = 2.1) where {T}
     mesh = collect(LinRange(-π / 𝑝, π / 𝑝, nmesh))
     mesh = wmax * tan.(mesh) / tan(π / 𝑝)
     #
-    weight = (mesh[2:end] + mesh[1:end-1]) / 2.0
+    weight = (mesh[2:end] + mesh[1:(end-1)]) / 2.0
     pushfirst!(weight, mesh[1])
     push!(weight, mesh[end])
     weight = diff(weight)
@@ -113,7 +113,7 @@ function LorentzMesh(nmesh::I64, wmin::T, wmax::T, 𝑝::T = 0.01) where {T}
     mesh = zeros(T, nmesh)
 
     for i in eachindex(temp)
-        f = ( (i - 1) / (nmesh - 1) * (1.0 - 2.0 * 𝑝) + 𝑝 - 0.5 )
+        f = ((i - 1) / (nmesh - 1) * (1.0 - 2.0 * 𝑝) + 𝑝 - 0.5)
         temp[i] = tan(π * f)
     end
 
@@ -125,7 +125,7 @@ function LorentzMesh(nmesh::I64, wmin::T, wmax::T, 𝑝::T = 0.01) where {T}
         mesh[i] = mesh[i] * 2.0 * wmax - wmax
     end
 
-    weight = (mesh[2:end] + mesh[1:end-1]) / 2.0
+    weight = (mesh[2:end] + mesh[1:(end-1)]) / 2.0
     pushfirst!(weight, mesh[1])
     push!(weight, mesh[end])
     weight = diff(weight)
@@ -166,7 +166,7 @@ function HalfLorentzMesh(nmesh::I64, wmax::T, 𝑝::T = 0.01) where {T}
     mesh = zeros(T, nmesh)
 
     for i in eachindex(temp)
-        f = (i - 2 + nmesh) / ( 2 * nmesh - 3 ) * (1.0 - 2.0 * 𝑝) + 𝑝 - 0.5
+        f = (i - 2 + nmesh) / (2 * nmesh - 3) * (1.0 - 2.0 * 𝑝) + 𝑝 - 0.5
         temp[i] = tan(π * f)
     end
 
@@ -178,7 +178,7 @@ function HalfLorentzMesh(nmesh::I64, wmax::T, 𝑝::T = 0.01) where {T}
         mesh[i] = mesh[i] * wmax
     end
 
-    weight = (mesh[2:end] + mesh[1:end-1]) / 2.0
+    weight = (mesh[2:end] + mesh[1:(end-1)]) / 2.0
     pushfirst!(weight, mesh[1])
     push!(weight, mesh[end])
     weight = diff(weight)
@@ -213,7 +213,7 @@ function DynamicMesh(mesh::Vector{T}) where {T}
     wmax = mesh[end]
     @assert wmax > wmin
 
-    weight = (mesh[2:end] + mesh[1:end-1]) / 2.0
+    weight = (mesh[2:end] + mesh[1:(end-1)]) / 2.0
     pushfirst!(weight, mesh[1])
     push!(weight, mesh[end])
     weight = diff(weight)

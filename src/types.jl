@@ -40,38 +40,41 @@ The following dictionaries are used as global variables.
 
 Dictionary for configuration parameters: general setup.
 """
-const PBASE    = Dict{String,ADT}(
-    "finput"  => [missing, 1, :String, "Filename for input data"],
-    "solver"  => [missing, 1, :String, "Solver for the analytic continuation problem"],
-    "ktype"   => [missing, 1, :String, "Type of kernel function"],
-    "mtype"   => [missing, 1, :String, "Type of default model function"],
-    "grid"    => [missing, 1, :String, "Grid for input data (imaginary axis)"],
-    "mesh"    => [missing, 1, :String, "Mesh for output data (real axis)"],
-    "ngrid"   => [missing, 1, :I64   , "Number of grid points"],
-    "nmesh"   => [missing, 1, :I64   , "Number of mesh points"],
-    "wmax"    => [missing, 1, :F64   , "Right boundary (maximum value) of output mesh"],
-    "wmin"    => [missing, 1, :F64   , "Left boundary (minimum value) of output mesh"],
-    "beta"    => [missing, 1, :F64   , "Inverse temperature"],
-    "offdiag" => [missing, 1, :Bool  , "Is it the offdiagonal part in matrix-valued function"],
-    "fwrite"  => [missing, 0, :Bool  , "Are the analytic continuation results written into files"],
-    "pmodel"  => [missing, 0, :Array , "Additional parameters for customizing the model"],
-    "pmesh"   => [missing, 0, :Array , "Additional parameters for customizing the mesh"],
-    "exclude" => [missing, 0, :Array , "Restriction of the energy range of the spectrum"],
+const PBASE = Dict{String,ADT}(
+    "finput" => [missing, 1, :String, "Filename for input data"],
+    "solver" => [missing, 1, :String, "Solver for the analytic continuation problem"],
+    "ktype" => [missing, 1, :String, "Type of kernel function"],
+    "mtype" => [missing, 1, :String, "Type of default model function"],
+    "grid" => [missing, 1, :String, "Grid for input data (imaginary axis)"],
+    "mesh" => [missing, 1, :String, "Mesh for output data (real axis)"],
+    "ngrid" => [missing, 1, :I64, "Number of grid points"],
+    "nmesh" => [missing, 1, :I64, "Number of mesh points"],
+    "wmax" => [missing, 1, :F64, "Right boundary (maximum value) of output mesh"],
+    "wmin" => [missing, 1, :F64, "Left boundary (minimum value) of output mesh"],
+    "beta" => [missing, 1, :F64, "Inverse temperature"],
+    "offdiag" =>
+        [missing, 1, :Bool, "Is it the offdiagonal part in matrix-valued function"],
+    "fwrite" =>
+        [missing, 0, :Bool, "Are the analytic continuation results written into files"],
+    "pmodel" => [missing, 0, :Array, "Additional parameters for customizing the model"],
+    "pmesh" => [missing, 0, :Array, "Additional parameters for customizing the mesh"],
+    "exclude" =>
+        [missing, 0, :Array, "Restriction of the energy range of the spectrum"],
 )
 
 # Default parameters for PBASE
-const _PBASE   = Dict{String,Any}(
-    "finput"  => "green.data",
-    "solver"  => "MaxEnt",
-    "ktype"   => "fermi",
-    "mtype"   => "flat",
-    "grid"    => "ffreq",
-    "mesh"    => "linear",
-    "ngrid"   => 10,
-    "nmesh"   => 501,
-    "wmax"    => 5.0,
-    "wmin"    => -5.0,
-    "beta"    => 10.0,
+const _PBASE = Dict{String,Any}(
+    "finput" => "green.data",
+    "solver" => "MaxEnt",
+    "ktype" => "fermi",
+    "mtype" => "flat",
+    "grid" => "ffreq",
+    "mesh" => "linear",
+    "ngrid" => 10,
+    "nmesh" => 501,
+    "wmax" => 5.0,
+    "wmin" => -5.0,
+    "beta" => 10.0,
     "offdiag" => false,
 )
 
@@ -81,23 +84,23 @@ const _PBASE   = Dict{String,Any}(
 Dictionary for configuration parameters:
 the maximum entropy method.
 """
-const PMaxEnt  = Dict{String,ADT}(
-    "method"  => [missing, 1, :String, "How to determine the optimized α parameter"],
-    "stype"   => [missing, 1, :String, "Type of the entropic term"],
-    "nalph"   => [missing, 1, :I64   , "Total number of the chosen α parameters"],
-    "alpha"   => [missing, 1, :F64   , "Starting value for the α parameter"],
-    "ratio"   => [missing, 1, :F64   , "Scaling factor for the α parameter"],
-    "blur"    => [missing, 1, :F64   , "Shall we preblur the kernel and spectrum"],
+const PMaxEnt = Dict{String,ADT}(
+    "method" => [missing, 1, :String, "How to determine the optimized α parameter"],
+    "stype" => [missing, 1, :String, "Type of the entropic term"],
+    "nalph" => [missing, 1, :I64, "Total number of the chosen α parameters"],
+    "alpha" => [missing, 1, :F64, "Starting value for the α parameter"],
+    "ratio" => [missing, 1, :F64, "Scaling factor for the α parameter"],
+    "blur" => [missing, 1, :F64, "Shall we preblur the kernel and spectrum"],
 )
 
 # Default parameters for PMaxEnt
 const _PMaxEnt = Dict{String,Any}(
-    "method"  => "chi2kink",
-    "stype"   => "sj",
-    "nalph"   => 12,
-    "alpha"   => 1e9,
-    "ratio"   => 10.0,
-    "blur"    => -1.0, # Negative value means off.
+    "method" => "chi2kink",
+    "stype" => "sj",
+    "nalph" => 12,
+    "alpha" => 1e9,
+    "ratio" => 10.0,
+    "blur" => -1.0, # Negative value means off.
 )
 
 """
@@ -106,21 +109,21 @@ const _PMaxEnt = Dict{String,Any}(
 Dictionary for configuration parameters:
 the barycentric rational function approximation method.
 """
-const PBarRat  = Dict{String,ADT}(
-    "atype"   => [missing, 1, :String, "Possible type of the spectrum"],
+const PBarRat = Dict{String,ADT}(
+    "atype" => [missing, 1, :String, "Possible type of the spectrum"],
     "denoise" => [missing, 1, :String, "How to denoise the input data"],
-    "epsilon" => [missing, 1, :F64   , "Threshold for the Prony approximation"],
-    "pcut"    => [missing, 1, :F64   , "Cutoff for unphysical poles"],
-    "eta"     => [missing, 1, :F64   , "Tiny distance from the real axis"],
+    "epsilon" => [missing, 1, :F64, "Threshold for the Prony approximation"],
+    "pcut" => [missing, 1, :F64, "Cutoff for unphysical poles"],
+    "eta" => [missing, 1, :F64, "Tiny distance from the real axis"],
 )
 
 # Default parameters for PBarRat
 const _PBarRat = Dict{String,Any}(
-    "atype"   => "cont",
+    "atype" => "cont",
     "denoise" => "prony",
     "epsilon" => 1e-10,
-    "pcut"    => 1e-3,
-    "eta"     => 1e-2,
+    "pcut" => 1e-3,
+    "eta" => 1e-2,
 )
 
 """
@@ -130,20 +133,20 @@ Dictionary for configuration parameters:
 the Nevanlinna analytical continuation method.
 """
 const PNevanAC = Dict{String,ADT}(
-    "pick"    => [missing, 1, :Bool  , "Check the Pick criterion or not"],
-    "hardy"   => [missing, 1, :Bool  , "Perform Hardy basis optimization or not"],
-    "hmax"    => [missing, 1, :I64   , "Upper cut off of Hardy order"],
-    "alpha"   => [missing, 1, :F64   , "Regulation parameter for smooth norm"],
-    "eta"     => [missing, 1, :F64   , "Tiny distance from the real axis"],
+    "pick" => [missing, 1, :Bool, "Check the Pick criterion or not"],
+    "hardy" => [missing, 1, :Bool, "Perform Hardy basis optimization or not"],
+    "hmax" => [missing, 1, :I64, "Upper cut off of Hardy order"],
+    "alpha" => [missing, 1, :F64, "Regulation parameter for smooth norm"],
+    "eta" => [missing, 1, :F64, "Tiny distance from the real axis"],
 )
 
 # Default parameters for PNevanAC
-const _PNevanAC= Dict{String,Any}(
-    "pick"    => true,
-    "hardy"   => true,
-    "hmax"    => 50,
-    "alpha"   => 1e-4,
-    "eta"     => 1e-2,
+const _PNevanAC = Dict{String,Any}(
+    "pick" => true,
+    "hardy" => true,
+    "hmax" => 50,
+    "alpha" => 1e-4,
+    "eta" => 1e-2,
 )
 
 """
@@ -153,26 +156,26 @@ Dictionary for configuration parameters:
 the stochastic analytic continuation method (K. S. D. Beach's version).
 """
 const PStochAC = Dict{String,ADT}(
-    "nfine"   => [missing, 1, :I64   , "Number of points of a very fine linear mesh"],
-    "ngamm"   => [missing, 1, :I64   , "Number of δ functions"],
-    "nwarm"   => [missing, 1, :I64   , "Number of Monte Carlo thermalization steps"],
-    "nstep"   => [missing, 1, :I64   , "Number of Monte Carlo sweeping steps"],
-    "ndump"   => [missing, 1, :I64   , "Intervals for monitoring Monte Carlo sweeps"],
-    "nalph"   => [missing, 1, :I64   , "Total number of the chosen α parameters"],
-    "alpha"   => [missing, 1, :F64   , "Starting value for the α parameter"],
-    "ratio"   => [missing, 1, :F64   , "Scaling factor for the α parameter"],
+    "nfine" => [missing, 1, :I64, "Number of points of a very fine linear mesh"],
+    "ngamm" => [missing, 1, :I64, "Number of δ functions"],
+    "nwarm" => [missing, 1, :I64, "Number of Monte Carlo thermalization steps"],
+    "nstep" => [missing, 1, :I64, "Number of Monte Carlo sweeping steps"],
+    "ndump" => [missing, 1, :I64, "Intervals for monitoring Monte Carlo sweeps"],
+    "nalph" => [missing, 1, :I64, "Total number of the chosen α parameters"],
+    "alpha" => [missing, 1, :F64, "Starting value for the α parameter"],
+    "ratio" => [missing, 1, :F64, "Scaling factor for the α parameter"],
 )
 
 # Default parameters for PStochAC
-const _PStochAC= Dict{String,Any}(
-    "nfine"   => 10000,
-    "ngamm"   => 512,
-    "nwarm"   => 4000,
-    "nstep"   => 4000000,
-    "ndump"   => 40000,
-    "nalph"   => 20,
-    "alpha"   => 1.00,
-    "ratio"   => 1.20,
+const _PStochAC = Dict{String,Any}(
+    "nfine" => 10000,
+    "ngamm" => 512,
+    "nwarm" => 4000,
+    "nstep" => 4000000,
+    "ndump" => 40000,
+    "nalph" => 20,
+    "alpha" => 1.00,
+    "ratio" => 1.20,
 )
 
 """
@@ -182,28 +185,28 @@ Dictionary for configuration parameters:
 the stochastic analytic continuation method (A. W. Sandvik's version).
 """
 const PStochSK = Dict{String,ADT}(
-    "method"  => [missing, 1, :String, "How to determine the optimized Θ parameter"],
-    "nfine"   => [missing, 1, :I64   , "Number of points of a very fine linear mesh"],
-    "ngamm"   => [missing, 1, :I64   , "Number of δ functions"],
-    "nwarm"   => [missing, 1, :I64   , "Number of Monte Carlo thermalization steps"],
-    "nstep"   => [missing, 1, :I64   , "Number of Monte Carlo sweeping steps"],
-    "ndump"   => [missing, 1, :I64   , "Intervals for monitoring Monte Carlo sweeps"],
-    "retry"   => [missing, 1, :I64   , "How often to recalculate the goodness function"],
-    "theta"   => [missing, 1, :F64   , "Starting value for the Θ parameter"],
-    "ratio"   => [missing, 1, :F64   , "Scaling factor for the Θ parameter"],
+    "method" => [missing, 1, :String, "How to determine the optimized Θ parameter"],
+    "nfine" => [missing, 1, :I64, "Number of points of a very fine linear mesh"],
+    "ngamm" => [missing, 1, :I64, "Number of δ functions"],
+    "nwarm" => [missing, 1, :I64, "Number of Monte Carlo thermalization steps"],
+    "nstep" => [missing, 1, :I64, "Number of Monte Carlo sweeping steps"],
+    "ndump" => [missing, 1, :I64, "Intervals for monitoring Monte Carlo sweeps"],
+    "retry" => [missing, 1, :I64, "How often to recalculate the goodness function"],
+    "theta" => [missing, 1, :F64, "Starting value for the Θ parameter"],
+    "ratio" => [missing, 1, :F64, "Scaling factor for the Θ parameter"],
 )
 
 # Default parameters for PStochSK
-const _PStochSK= Dict{String,Any}(
-    "method"  => "chi2min",
-    "nfine"   => 100000,
-    "ngamm"   => 1000,
-    "nwarm"   => 1000,
-    "nstep"   => 20000,
-    "ndump"   => 200,
-    "retry"   => 10,
-    "theta"   => 1e+6,
-    "ratio"   => 0.90,
+const _PStochSK = Dict{String,Any}(
+    "method" => "chi2min",
+    "nfine" => 100000,
+    "ngamm" => 1000,
+    "nwarm" => 1000,
+    "nstep" => 20000,
+    "ndump" => 200,
+    "retry" => 10,
+    "theta" => 1e+6,
+    "ratio" => 0.90,
 )
 
 """
@@ -213,22 +216,22 @@ Dictionary for configuration parameters:
 the stochastic optimization method.
 """
 const PStochOM = Dict{String,ADT}(
-    "ntry"    => [missing, 1, :I64   , "Number of attempts (tries) to seek the solution"],
-    "nstep"   => [missing, 1, :I64   , "Number of Monte Carlo steps per attempt / try"],
-    "nbox"    => [missing, 1, :I64   , "Number of boxes to construct the spectrum"],
-    "sbox"    => [missing, 1, :F64   , "Minimum area of the randomly generated boxes"],
-    "wbox"    => [missing, 1, :F64   , "Minimum width of the randomly generated boxes"],
-    "norm"    => [missing, 1, :F64   , "Is the norm calculated"],
+    "ntry" => [missing, 1, :I64, "Number of attempts (tries) to seek the solution"],
+    "nstep" => [missing, 1, :I64, "Number of Monte Carlo steps per attempt / try"],
+    "nbox" => [missing, 1, :I64, "Number of boxes to construct the spectrum"],
+    "sbox" => [missing, 1, :F64, "Minimum area of the randomly generated boxes"],
+    "wbox" => [missing, 1, :F64, "Minimum width of the randomly generated boxes"],
+    "norm" => [missing, 1, :F64, "Is the norm calculated"],
 )
 
 # Default parameters for PStochOM
-const _PStochOM= Dict{String,Any}(
-    "ntry"    => 2000,
-    "nstep"   => 1000,
-    "nbox"    => 100,
-    "sbox"    => 0.005,
-    "wbox"    => 0.02,
-    "norm"    => -1.0, # Negative value means off.
+const _PStochOM = Dict{String,Any}(
+    "ntry" => 2000,
+    "nstep" => 1000,
+    "nbox" => 100,
+    "sbox" => 0.005,
+    "wbox" => 0.02,
+    "norm" => -1.0, # Negative value means off.
 )
 
 """
@@ -238,24 +241,24 @@ Dictionary for configuration parameters:
 the stochastic pole expansion method.
 """
 const PStochPX = Dict{String,ADT}(
-    "method"  => [missing, 1, :String, "How to evaluate the final spectral density"],
-    "nfine"   => [missing, 1, :I64   , "Number of grid points for a very fine mesh"],
-    "npole"   => [missing, 1, :I64   , "Number of poles"],
-    "ntry"    => [missing, 1, :I64   , "Number of attempts (tries) to seek the solution"],
-    "nstep"   => [missing, 1, :I64   , "Number of Monte Carlo steps per attempt / try"],
-    "theta"   => [missing, 1, :F64   , "Artificial inverse temperature"],
-    "eta"     => [missing, 1, :F64   , "Tiny distance from the real axis"],
+    "method" => [missing, 1, :String, "How to evaluate the final spectral density"],
+    "nfine" => [missing, 1, :I64, "Number of grid points for a very fine mesh"],
+    "npole" => [missing, 1, :I64, "Number of poles"],
+    "ntry" => [missing, 1, :I64, "Number of attempts (tries) to seek the solution"],
+    "nstep" => [missing, 1, :I64, "Number of Monte Carlo steps per attempt / try"],
+    "theta" => [missing, 1, :F64, "Artificial inverse temperature"],
+    "eta" => [missing, 1, :F64, "Tiny distance from the real axis"],
 )
 
 # Default parameters for PStochPX
-const _PStochPX= Dict{String,Any}(
-    "method"  => "mean",
-    "nfine"   => 100000,
-    "npole"   => 200,
-    "ntry"    => 1000,
-    "nstep"   => 1000000,
-    "theta"   => 1e+6,
-    "eta"     => 1e-4,
+const _PStochPX = Dict{String,Any}(
+    "method" => "mean",
+    "nfine" => 100000,
+    "npole" => 200,
+    "ntry" => 1000,
+    "nstep" => 1000000,
+    "theta" => 1e+6,
+    "eta" => 1e-4,
 )
 
 #=
@@ -549,9 +552,9 @@ data may be `Float64` or `ComplexF64`.
 See also: [`GreenData`](@ref).
 """
 mutable struct RawData{T} <: AbstractData
-    _grid :: Vector{F64}
-    value :: Vector{T}
-    error :: Vector{T}
+    _grid::Vector{F64}
+    value::Vector{T}
+    error::Vector{T}
 end
 
 """
@@ -568,9 +571,9 @@ should support arbitrary precision via `T`
 See also: [`RawData`](@ref).
 """
 mutable struct GreenData{T} <: AbstractData
-    value :: Vector{T}
-    error :: Vector{T}
-    covar :: Vector{T}
+    value::Vector{T}
+    error::Vector{T}
+    covar::Vector{T}
 end
 
 #=
@@ -598,9 +601,9 @@ Mutable struct. It represents the fermionic imaginary time grid.
 See also: [`FermionicFragmentTimeGrid`](@ref).
 """
 mutable struct FermionicImaginaryTimeGrid{T} <: AbstractGrid
-    ntime :: I64
-    β :: T
-    τ :: Vector{T}
+    ntime::I64
+    β::T
+    τ::Vector{T}
 end
 
 """
@@ -617,9 +620,9 @@ In other words, the grid might be fragmentary。
 See also: [`FermionicImaginaryTimeGrid`](@ref).
 """
 mutable struct FermionicFragmentTimeGrid{T} <: AbstractGrid
-    ntime :: I64
-    β :: T
-    τ :: Vector{T}
+    ntime::I64
+    β::T
+    τ::Vector{T}
 end
 
 """
@@ -635,9 +638,9 @@ Mutable struct. It represents the fermionic Matsubara frequency grid.
 See also: [`FermionicFragmentMatsubaraGrid`](@ref).
 """
 mutable struct FermionicMatsubaraGrid{T} <: AbstractGrid
-    nfreq :: I64
-    β :: T
-    ω :: Vector{T}
+    nfreq::I64
+    β::T
+    ω::Vector{T}
 end
 
 """
@@ -654,9 +657,9 @@ grid. In other words, the grid might be fragmentary。
 See also: [`FermionicMatsubaraGrid`](@ref).
 """
 mutable struct FermionicFragmentMatsubaraGrid{T} <: AbstractGrid
-    nfreq :: I64
-    β :: T
-    ω :: Vector{T}
+    nfreq::I64
+    β::T
+    ω::Vector{T}
 end
 
 """
@@ -672,9 +675,9 @@ Mutable struct. It represents the bosonic imaginary time grid.
 See also: [`BosonicFragmentTimeGrid`](@ref).
 """
 mutable struct BosonicImaginaryTimeGrid{T} <: AbstractGrid
-    ntime :: I64
-    β :: T
-    τ :: Vector{T}
+    ntime::I64
+    β::T
+    τ::Vector{T}
 end
 
 """
@@ -691,9 +694,9 @@ In other words, the grid might be fragmentary。
 See also: [`BosonicImaginaryTimeGrid`](@ref).
 """
 mutable struct BosonicFragmentTimeGrid{T} <: AbstractGrid
-    ntime :: I64
-    β :: T
-    τ :: Vector{T}
+    ntime::I64
+    β::T
+    τ::Vector{T}
 end
 
 """
@@ -709,9 +712,9 @@ Mutable struct. It represents the bosonic Matsubara frequency grid.
 See also: [`BosonicFragmentMatsubaraGrid`](@ref).
 """
 mutable struct BosonicMatsubaraGrid{T} <: AbstractGrid
-    nfreq :: I64
-    β :: T
-    ω :: Vector{T}
+    nfreq::I64
+    β::T
+    ω::Vector{T}
 end
 
 """
@@ -729,9 +732,9 @@ frequency point should be present (ωₙ ≡ 0.0).
 See also: [`BosonicMatsubaraGrid`](@ref).
 """
 mutable struct BosonicFragmentMatsubaraGrid{T} <: AbstractGrid
-    nfreq :: I64
-    β :: T
-    ω :: Vector{T}
+    nfreq::I64
+    β::T
+    ω::Vector{T}
 end
 
 #=
@@ -761,11 +764,11 @@ Mutable struct. A linear and uniform mesh.
 See also: [`TangentMesh`](@ref).
 """
 mutable struct LinearMesh{T} <: AbstractMesh
-    nmesh :: I64
-    wmax :: T
-    wmin :: T
-    mesh :: Vector{T}
-    weight :: Vector{T}
+    nmesh::I64
+    wmax::T
+    wmin::T
+    mesh::Vector{T}
+    weight::Vector{T}
 end
 
 """
@@ -784,11 +787,11 @@ be defined on both negative and positive half-axis.
 See also: [`LinearMesh`](@ref).
 """
 mutable struct TangentMesh{T} <: AbstractMesh
-    nmesh :: I64
-    wmax :: T
-    wmin :: T
-    mesh :: Vector{T}
-    weight :: Vector{T}
+    nmesh::I64
+    wmax::T
+    wmin::T
+    mesh::Vector{T}
+    weight::Vector{T}
 end
 
 """
@@ -807,11 +810,11 @@ be defined on both negative and positive half-axis.
 See also: [`HalfLorentzMesh`](@ref).
 """
 mutable struct LorentzMesh{T} <: AbstractMesh
-    nmesh :: I64
-    wmax :: T
-    wmin :: T
-    mesh :: Vector{T}
-    weight :: Vector{T}
+    nmesh::I64
+    wmax::T
+    wmin::T
+    mesh::Vector{T}
+    weight::Vector{T}
 end
 
 """
@@ -830,11 +833,11 @@ be defined on positive half-axis only.
 See also: [`LorentzMesh`](@ref).
 """
 mutable struct HalfLorentzMesh{T} <: AbstractMesh
-    nmesh :: I64
-    wmax :: T
-    wmin :: T
-    mesh :: Vector{T}
-    weight :: Vector{T}
+    nmesh::I64
+    wmax::T
+    wmin::T
+    mesh::Vector{T}
+    weight::Vector{T}
 end
 
 """
@@ -863,11 +866,11 @@ more details.
 See also: [`LinearMesh`](@ref).
 """
 mutable struct DynamicMesh{T} <: AbstractMesh
-    nmesh :: I64
-    wmax :: T
-    wmin :: T
-    mesh :: Vector{T}
-    weight :: Vector{T}
+    nmesh::I64
+    wmax::T
+    wmin::T
+    mesh::Vector{T}
+    weight::Vector{T}
 end
 
 #=
@@ -898,11 +901,11 @@ number generator and some counters.
 See also: [`StochACSolver`](@ref).
 """
 mutable struct StochACMC <: AbstractMC
-    rng :: AbstractRNG
-    Macc :: Vector{I64}
-    Mtry :: Vector{I64}
-    Sacc :: Vector{I64}
-    Stry :: Vector{I64}
+    rng::AbstractRNG
+    Macc::Vector{I64}
+    Mtry::Vector{I64}
+    Sacc::Vector{I64}
+    Stry::Vector{I64}
 end
 
 """
@@ -923,13 +926,13 @@ number generator and some counters.
 See also: [`StochSKSolver`](@ref).
 """
 mutable struct StochSKMC
-    rng :: AbstractRNG
-    Sacc :: I64
-    Stry :: I64
-    Pacc :: I64
-    Ptry :: I64
-    Qacc :: I64
-    Qtry :: I64
+    rng::AbstractRNG
+    Sacc::I64
+    Stry::I64
+    Pacc::I64
+    Ptry::I64
+    Qacc::I64
+    Qtry::I64
 end
 
 """
@@ -949,9 +952,9 @@ and `Mtry` are vectors.
 See also: [`StochOMSolver`](@ref).
 """
 mutable struct StochOMMC <: AbstractMC
-    rng :: AbstractRNG
-    Macc :: Vector{I64}
-    Mtry :: Vector{I64}
+    rng::AbstractRNG
+    Macc::Vector{I64}
+    Mtry::Vector{I64}
 end
 
 """
@@ -974,13 +977,13 @@ number generator and some counters.
 See also: [`StochPXSolver`](@ref).
 """
 mutable struct StochPXMC <: AbstractMC
-    rng :: AbstractRNG
-    Sacc :: I64
-    Stry :: I64
-    Pacc :: I64
-    Ptry :: I64
-    Aacc :: I64
-    Atry :: I64
-    Xacc :: I64
-    Xtry :: I64
+    rng::AbstractRNG
+    Sacc::I64
+    Stry::I64
+    Pacc::I64
+    Ptry::I64
+    Aacc::I64
+    Atry::I64
+    Xacc::I64
+    Xtry::I64
 end

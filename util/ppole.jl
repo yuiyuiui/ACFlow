@@ -22,7 +22,7 @@
 #     $ ppole.jl ac.toml
 #
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Printf
 using ACFlow
@@ -54,23 +54,23 @@ function calc_green_function(
     spe::StochPXElement,
     mesh::AbstractMesh,
     fmesh::AbstractMesh,
-    Gᵥ::Vector{F64}
-    )
+    Gᵥ::Vector{F64},
+)
     ktype = get_b("ktype")
 
     χ₀ = -Gᵥ[1]
     @cswitch ktype begin
         @case "fermi"
-            G = calc_green(spe.P, spe.A, spe.𝕊, mesh, fmesh)
-            break
+        G = calc_green(spe.P, spe.A, spe.𝕊, mesh, fmesh)
+        break
 
         @case "boson"
-            G = calc_green(spe.P, spe.A, spe.𝕊, mesh, fmesh, χ₀, false)
-            break
+        G = calc_green(spe.P, spe.A, spe.𝕊, mesh, fmesh, χ₀, false)
+        break
 
         @case "bsymm"
-            G = calc_green(spe.P, spe.A, spe.𝕊, mesh, fmesh, χ₀, true)
-            break
+        G = calc_green(spe.P, spe.A, spe.𝕊, mesh, fmesh, χ₀, true)
+        break
     end
 
     return G

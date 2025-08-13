@@ -1,6 +1,6 @@
 #!/usr/bin/env julia
 
-haskey(ENV,"ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
+haskey(ENV, "ACFLOW_HOME") && pushfirst!(LOAD_PATH, ENV["ACFLOW_HOME"])
 
 using Random
 using Printf
@@ -10,10 +10,10 @@ using ACFlow
 wmin = -10.0 # Left boundary
 wmax = +10.0 # Right boundary
 nmesh = 2001 # Number of real-frequency points
-niw  = 50    # Number of Matsubara frequencies
+niw = 50    # Number of Matsubara frequencies
 beta = 20.0  # Inverse temperature
-ϵ    = 0.50  # Parameters for gaussian peaks
-Γ    = 1.00
+ϵ = 0.50  # Parameters for gaussian peaks
+Γ = 1.00
 
 # Real frequency mesh
 rmesh = collect(LinRange(wmin, wmax, nmesh))
@@ -26,7 +26,7 @@ image = similar(rmesh)
 image = image ./ trapz(rmesh, image)
 
 # Matsubara frequency mesh
-iw = π / beta * (2.0 * collect(0:niw-1) .+ 1.0)
+iw = π / beta * (2.0 * collect(0:(niw-1)) .+ 1.0)
 
 # Noise
 seed = rand(1:100000000)
@@ -36,13 +36,13 @@ noise = randn(rng, F64, niw) + im * randn(rng, F64, niw)
 noise = noise_ampl * noise / sqrt(2.0)
 
 # Kernel function
-kernel = 1.0 ./ (im * reshape(iw, (niw,1)) .- reshape(rmesh, (1,nmesh)))
+kernel = 1.0 ./ (im * reshape(iw, (niw, 1)) .- reshape(rmesh, (1, nmesh)))
 
 # Build green's function
-KA = kernel .* reshape(image, (1,nmesh))
+KA = kernel .* reshape(image, (1, nmesh))
 giw = zeros(C64, niw)
 for i in eachindex(giw)
-    giw[i] = trapz(rmesh, KA[i,:]) + noise[i]
+    giw[i] = trapz(rmesh, KA[i, :]) + noise[i]
 end
 
 # Build error
